@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Connexis Robotics</title>
+<style>
+  /* Ioskeley Mono: the logo typeface (SIL OFL 1.1, see assets/fonts/OFL.txt) */
+  @font-face{font-family:"Roboto";src:url(assets/fonts/Roboto-latin.woff2) format("woff2");font-weight:100 900;font-display:block}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  @font-face{font-family:"Ioskeley Mono";src:url(assets/fonts/IoskeleyMono-Light.woff2) format("woff2");font-weight:300}
+  @font-face{font-family:"Ioskeley Mono";src:url(assets/fonts/IoskeleyMono-Regular.woff2) format("woff2");font-weight:400}
+  @font-face{font-family:"Ioskeley Mono";src:url(assets/fonts/IoskeleyMono-Medium.woff2) format("woff2");font-weight:500}
+  @font-face{font-family:"Ioskeley Mono";src:url(assets/fonts/IoskeleyMono-SemiBold.woff2) format("woff2");font-weight:600}
+  :root{
+    --ink:#262625; --orange:#E97132; --orange-soft:#F2A06F; --white:#FFFFFF; --muted:#B9B6B0;
+    --font:"Roboto","Helvetica Neue",Arial,sans-serif;
+    --mono:"Ioskeley Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#0B0B0B;font-family:var(--font);color:var(--white)}
+  .viewport{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .deck{width:1280px;height:720px;flex:none;position:relative;transform-origin:center center}
+  .shot .nav,.shot .rot{display:none!important}
+  .rot{display:none;position:fixed;left:0;right:0;bottom:18px;text-align:center;font:13px var(--font);color:rgba(255,255,255,.55);pointer-events:none}
+  @media (orientation:portrait) and (max-width:820px){.rot{display:block}}
+  .slide{position:absolute;inset:0;display:none;overflow:hidden;background:#000 center/cover no-repeat}
+  .slide.active{display:block}
+  .abs{position:absolute}
+  .hl{color:var(--orange)}
+  .pnum{position:absolute;right:40px;bottom:26px;font-size:13px;font-weight:500;color:rgba(255,255,255,.45);letter-spacing:.04em}
+
+  /* ---------- cover ---------- */
+  .cover{background-image:url(assets/bg-1.jpg)}
+  .cover .logo{left:72px;top:60px;height:38px}
+  .cover .by{left:74px;top:336px;margin:0;font-size:20px;font-weight:300;color:rgba(255,255,255,.85);display:flex;flex-direction:column;gap:4px;line-height:1.3;z-index:3}
+  .cover .by .bar{display:inline-block;width:1px;height:18px;background:rgba(255,255,255,.45);align-self:center}
+  .cover .by b{font-size:inherit;font-weight:inherit;color:inherit}
+  .cover h1{left:72px;top:176px;font-size:58px;line-height:1.1;font-weight:500;letter-spacing:-.018em}
+  .cover .prods{position:absolute;left:72px;top:632px;display:grid;grid-template-columns:420px 340px;column-gap:36px}
+  .cover .prod b{display:block;font-family:var(--mono);font-weight:500;font-size:17px;letter-spacing:.02em;color:#fff}
+  .cover .prod span{display:block;margin-top:3px;font-size:16px;line-height:1.4;font-weight:300;color:rgba(255,255,255,.75)}
+  .cover .prod::before{content:"";display:block;width:24px;height:2px;background:var(--orange);margin-bottom:10px}
+  .crop{position:absolute;overflow:hidden}
+  .cover .art{position:absolute;inset:0}
+  .cover .art .crop img{position:absolute;display:block}
+  .cover .hand{left:0;top:377.9px;width:217.6px;height:318.6px;-webkit-mask-image:linear-gradient(90deg,#000 92%,transparent);mask-image:linear-gradient(90deg,#000 92%,transparent)}
+  .cover .hand img{width:570.5px;height:318.6px;left:0;top:0;mix-blend-mode:screen}
+  .cover .ribbon{left:198.9px;top:473.1px;width:586.7px;height:115.6px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 3%);mask-image:linear-gradient(90deg,transparent,#000 3%)}
+  .cover .ribbon img{width:969.9px;height:318.6px;left:-338.1px;top:-95.2px;mix-blend-mode:screen}
+  .cover .robot{left:704.5px;top:327.5px;width:595.5px;height:392.5px}
+  .cover .robot img{width:595.5px;height:397.0px;left:0;top:0;opacity:.88}
+
+  /* ---------- shared body-slide styles ---------- */
+  .body{background-image:url(assets/bg-1.jpg)}
+  .body .ttl{position:absolute;left:0;right:0;top:34px;text-align:center;font-size:46px;font-weight:300;line-height:1.2}
+  .body .take{position:absolute;left:0;right:0;top:100px;text-align:center;font-size:19px;font-weight:300;color:rgba(255,255,255,.72)}
+  .kick{font-size:12.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--orange)}
+  .pg-logo{position:absolute;right:12px;bottom:16px;height:16px;opacity:.85}
+  .pg-num{position:absolute;right:12px;top:14px;font-size:14px;font-weight:400;color:rgba(255,255,255,.6);font-variant-numeric:tabular-nums}
+  .src{position:absolute;left:64px;right:200px;bottom:24px;font-size:11px;font-weight:300;color:rgba(255,255,255,.42)}
+  .card{position:absolute;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.035);border-radius:14px;overflow:hidden}
+  .card .pic{display:block;width:100%;object-fit:cover}
+  .card .tx{padding:14px 18px 16px}
+  .card h3{font-size:21px;font-weight:500;margin-top:5px}
+  .card p{font-size:14.5px;font-weight:300;line-height:1.4;color:rgba(255,255,255,.75);margin-top:5px}
+  .card.hot{border-color:var(--orange);box-shadow:0 0 0 1px rgba(233,113,50,.35),0 0 40px rgba(233,113,50,.18)}
+  .tag{position:absolute;right:12px;top:12px;background:var(--orange);color:#fff;font-size:11.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;border-radius:999px;padding:4px 10px}
+  .chev{position:absolute;color:var(--orange);font-size:30px;font-weight:300}
+
+  /* slide: rise of intelligence (curve + three stages, small clips) */
+  .rise .div{position:absolute;top:112px;height:540px;border-left:1px dashed rgba(255,255,255,.2)}
+  .rise .curve{position:absolute;left:0;top:0;pointer-events:none}
+  .rise .dot{position:absolute;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#E48E5A;box-shadow:0 0 12px rgba(233,113,50,.8)}
+  .rise .dot.hot{background:#000;border:2px solid var(--orange)}
+  .rise .lnk{position:absolute;border-left:1px solid rgba(219,102,57,.85)}
+  .rise .lnk.hot{border-left-style:dashed}
+  .rise .clip{position:absolute;width:180px;height:101px;border-radius:8px;overflow:hidden;background:#111;border:1px solid rgba(255,255,255,.16)}
+  .rise .clip.hot{border-color:var(--orange);box-shadow:0 0 24px rgba(233,113,50,.25)}
+  .rise .clip video{display:block;width:100%;height:100%;object-fit:cover}
+  .rise .ucs{position:absolute;left:895px;top:330px;width:340px;list-style:none}
+  .rise .ucs li{font-size:17px;font-weight:300;color:#fff;padding:9px 0 9px 22px;border-bottom:1px dashed rgba(233,113,50,.45);position:relative}
+  .rise .ucs li::before{content:"";position:absolute;left:2px;top:50%;width:8px;height:8px;margin-top:-4px;transform:rotate(45deg);background:var(--orange)}
+  .rise .stg{position:absolute;top:566px;width:360px;text-align:center}
+  .rise .stg .nm{font-size:26px;font-weight:500}
+  .rise .stg .ss{font-size:16px;font-weight:300;color:rgba(255,255,255,.7);margin-top:2px}
+  .rise .stg.hot .nm,.rise .stg.hot .ss{color:var(--orange)}
+  .rise .sub{position:absolute;top:516px;width:300px;text-align:center}
+  .rise .sub .nm{font-size:19px;font-weight:500}
+  .rise .sub .ss{font-size:14px;font-weight:300;color:rgba(255,255,255,.65);margin-top:1px}
+  .rise .brk{position:absolute;left:60px;width:733px;top:568px;height:10px;border:1px solid rgba(255,255,255,.45);border-bottom:0}
+  .rise .mkt{position:absolute;left:0;right:0;top:658px;text-align:center;font-size:15px;font-weight:300;color:rgba(255,255,255,.75)}
+
+  /* slide 2: three eras on the old timeline curve (reuses .rise .dot/.lnk/.clip look) */
+  .rise2 .div{position:absolute;top:112px;height:560px;border-left:1px dashed rgba(255,255,255,.22)}
+  .rise2 .curve{position:absolute;left:0;top:0;pointer-events:none}
+  .rise2 .dot{position:absolute;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#E48E5A;box-shadow:0 0 12px rgba(233,113,50,.8)}
+  .rise2 .dot.hot{background:#000;border:2px solid var(--orange)}
+  .rise2 .lnk{position:absolute;border-left:1px solid rgba(219,102,57,.85)}
+  .rise2 .lnk.hot{border-left-style:dashed}
+  .rise2 .clip{position:absolute;width:180px;height:101px;border-radius:8px;overflow:hidden;background:#111;border:1px solid rgba(255,255,255,.16)}
+  .rise2 .clip.hot{border-color:var(--orange);box-shadow:0 0 24px rgba(233,113,50,.25)}
+  .rise2 .clip video,.rise2 .clip img{display:block;width:100%;height:100%;object-fit:cover}
+  .rise2 .yr{position:absolute;width:300px;text-align:center;line-height:1.25}
+  .rise2 .yr.big span{font-size:20px;font-weight:500;color:#fff;line-height:1.2}
+  .rise2 .yr i{display:block;font-style:normal;font-size:12px;font-weight:300;color:rgba(255,255,255,.5);margin-top:4px}
+  .rise2 .cr{position:absolute;font-size:12px;font-weight:300;color:rgba(255,255,255,.5);white-space:nowrap}
+  .rise2 .yr b{display:block;font-size:20px;font-weight:500}
+  .rise2 .yr span{display:block;font-size:15px;font-weight:300;color:rgba(255,255,255,.75)}
+  .rise2 .yr.hot b{color:var(--orange)}
+  .rise2 .era{position:absolute;top:612px;text-align:center;font-size:26px;font-weight:500}
+  .rise2 .era.hot{color:var(--orange)}
+  .rise2 .scn{position:absolute;text-align:center;font-size:15px;font-weight:300;color:rgba(255,255,255,.75);white-space:nowrap}
+  .rise2 .era small{display:block;font-size:16px;font-weight:300;color:rgba(255,255,255,.7);margin-top:4px}
+  .rise2 .era.hot small{color:rgba(233,113,50,.85)}
+
+  /* slide 2: old deck "rise" slide, converted from PPTX coordinates (960x540pt -> 1280x720) */
+  .orise .o-curve{position:absolute;left:0;top:0;pointer-events:none}
+  .orise .o-sp{position:absolute;display:flex;flex-direction:column;box-sizing:border-box;line-height:1.2;color:#fff}
+  .orise .o-sp p{margin:0}
+  .orise .o-pic{position:absolute;overflow:hidden}
+  .orise .o-pic img,.orise .o-pic video{position:absolute;display:block}
+  .orise .o-ln{position:absolute;width:0}
+
+  /* slide: the gaps (two rows) */
+  .gap .gname{position:absolute;left:64px;width:330px;padding-top:30px}
+  .gap .gname .g{font-size:34px;font-weight:500;color:var(--orange)}
+  .gap .gname p{font-size:19px;font-weight:300;color:rgba(255,255,255,.85);margin-top:6px;line-height:1.35}
+  .gap figure{position:absolute;width:260px;margin:0}
+  .gap .have{left:420px}.gap .need{left:956px}
+  .gap .clip{width:260px;height:146px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.16);background:#111}
+  .gap .need .clip{border-color:var(--orange);box-shadow:0 0 24px rgba(233,113,50,.25)}
+  .gap .clip video{display:block;width:100%;height:100%;object-fit:cover}
+  .gap figcaption{font-size:15px;font-weight:300;color:rgba(255,255,255,.7);margin-top:10px;text-align:center}
+  .gap .need figcaption{color:#fff}
+  .gap .bridge{position:absolute;left:696px;width:244px;height:22px;display:flex;align-items:center;gap:0}
+  .gap .bridge i{flex:1;height:2px;background:var(--orange)}
+  .gap .bridge i:last-child{background:repeating-linear-gradient(90deg,var(--orange) 0 7px,transparent 7px 14px)}
+  .gap .bridge b{width:64px;height:22px;position:relative}
+  .gap .bridge b::before,.gap .bridge b::after{content:"";position:absolute;top:0;bottom:0;width:2px;background:var(--orange);transform:skewX(-18deg)}
+  .gap .bridge b::before{left:14px}.gap .bridge b::after{right:14px}
+  .gap .sep{position:absolute;left:64px;right:64px;top:364px;border-top:1px dashed rgba(255,255,255,.18)}
+  .gap .close{position:absolute;left:0;right:0;top:628px;text-align:center;font-size:20px;font-weight:300}
+  .gap .close b{font-family:var(--mono);font-weight:500;letter-spacing:.02em;margin:0 10px 0 16px}
+  .gap .close b:first-child{margin-left:0}
+
+  /* slide 3: today (bottom left) -> tomorrow (top right), missing steps */
+  .tt .br{position:absolute;left:0;top:0;pointer-events:none}
+  .tt .side{position:absolute;width:336px}
+  .tt .side .nm{font-size:28px;font-weight:500}
+  .tt .side .ss{font-size:16px;font-weight:300;color:rgba(255,255,255,.7);margin-top:2px}
+  .tt .side.hot .nm{color:var(--orange)}
+  .tt .m{position:absolute}
+  .tt .m img{display:block;width:100%;height:100%;object-fit:cover}
+  .tt .m.big{width:300px;height:169px}
+  .tt .m.sm{width:150px;height:84px;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+  .tt .m.hot{border-color:var(--orange);box-shadow:0 0 30px rgba(233,113,50,.25)}
+  .tt .cir{position:absolute;left:1056px;width:160px;margin:0;text-align:center}
+  .tt .cir figcaption{font-size:15px;font-weight:400;color:rgba(255,255,255,.85);margin-bottom:6px}
+  .tt .cir img{display:block;width:104px;height:104px;margin:0 auto;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,.8)}
+  .tt .def{position:absolute;left:130px;top:236px;width:580px;margin:0;text-align:right;font-size:24px;font-weight:300;line-height:1.3}
+  .tt .def span{color:var(--orange);font-weight:500}
+  .tt .def small{display:block;font-size:17px;font-weight:400;color:rgba(255,255,255,.8);margin-top:8px}
+  .tt .rbt{position:absolute;left:872px;top:214px;height:300px;-webkit-mask-image:linear-gradient(#000 80%,transparent);mask-image:linear-gradient(#000 80%,transparent)}
+  .tt .gp{position:absolute;width:240px;text-align:center}
+  .tt .gp b{display:block;font-size:24px;font-weight:500;color:var(--orange)}
+  .tt .gp span{display:block;font-size:14px;font-weight:300;color:rgba(255,255,255,.75);margin-top:2px}
+  .tt .close{position:absolute;text-align:center;font-size:20px;font-weight:300}
+  .tt .close b{font-family:var(--mono);font-weight:500;letter-spacing:.02em;margin:0 10px 0 16px}
+  .tt .close b:first-child{margin-left:0}
+
+  /* slide: social intelligence layer (inputs -> HEXWorld -> physical intelligence partners) */
+  .lay .ttl{font-size:40px;top:38px;white-space:nowrap}
+  .lay .ttl .mn{font-family:var(--mono);font-weight:400;letter-spacing:.01em}
+  .lay .zone{position:absolute;top:136px;font-size:15px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--orange)}
+  .lay .zone.ph{color:rgba(255,255,255,.55)}
+  .lay .pb{display:inline-block;line-height:1;white-space:nowrap;font-family:var(--mono);font-weight:500;color:#fff;border:1.5px solid var(--orange);border-radius:10px;letter-spacing:.01em}
+  .lay .pb.sm{font-size:16px;padding:6px 10px;border-radius:7px;margin-right:0}
+  .lay .pb.big{font-size:40px;padding:18px 26px;border-width:2px;border-radius:14px;box-shadow:0 0 40px rgba(233,113,50,.3),inset 0 0 20px rgba(233,113,50,.12);background:rgba(0,0,0,.35)}
+  .lay .in,.lay .out{position:absolute;width:256px}
+  .lay .in{left:96px}.lay .out{left:930px}
+  .lay .in .film,.lay .in .m,.lay .out .m{height:120px;border-radius:8px;overflow:hidden}
+  .lay .in .film{border:1px solid rgba(255,255,255,.16)}
+  .lay .out .m{border-color:rgba(255,255,255,.12);opacity:.85}
+  .lay .lb{display:block;margin-top:12px;font-size:17px;font-weight:300;color:rgba(255,255,255,.85);white-space:nowrap}
+  .lay .out .lb{display:block;font-size:18px;font-weight:400;color:#fff}
+  .lay .out .lb small{display:block;font-size:14px;font-weight:300;color:rgba(255,255,255,.55);margin-top:2px}
+  .lay .lb .sub{display:block;font-size:14px;font-weight:300;color:rgba(255,255,255,.6);margin-top:1px}
+  .lay .in .hlk{height:80px;width:256px;border-radius:14px;border:2px solid var(--orange);background:rgba(233,113,50,.06);display:flex;align-items:center;justify-content:center}
+  .lay .in .hlk span{font-family:var(--mono);font-weight:500;font-size:40px;line-height:1;white-space:nowrap}
+  .lay .out .lb{margin:0 0 12px}
+  .lay .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .lay .chips span{font-size:15px;font-weight:500;padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.05);color:rgba(255,255,255,.85)}
+  .lay .bots{position:relative;height:270px;width:330px}
+  .lay .bots img{position:absolute}
+  .lay .bots img{display:block;-webkit-mask-image:linear-gradient(#000 80%,transparent);mask-image:linear-gradient(#000 80%,transparent)}
+  .lay .core{position:absolute;left:445px;top:310px;width:360px;text-align:center}
+  .lay .core p{margin:12px 0 0;font-size:17px;font-weight:300;color:rgba(255,255,255,.85)}
+
+  /* slide: HEXWorld structure, applications, and data injection */
+  .hw1 .ttl .mn{font-family:var(--mono);font-weight:400}
+  .hw1 .time{position:absolute;left:530px;top:142px;font-family:var(--mono);font-size:13px;letter-spacing:.14em;color:rgba(255,255,255,.45)}
+  .hw1 .rl span{font-weight:300;color:rgba(255,255,255,.6);font-size:15px}
+  .hw1 .rl{position:absolute;left:0;width:292px;text-align:right;font-size:18px;font-weight:300;color:rgba(255,255,255,.85)}
+  .hw1 .tk{position:absolute;width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--mono);font-size:12px;font-weight:500}
+  .hw1 .tk.v{background:#EDEBE6;color:#262625}
+  .hw1 .tk.a{background:rgba(255,255,255,.22);color:#fff}
+  .hw1 .tk.r{border:1.5px solid rgba(255,255,255,.45);color:rgba(255,255,255,.8)}
+  .hw1 .core{position:absolute;left:584px;top:185px;width:280px;height:80px;border-radius:14px;border:2px solid var(--orange);background:rgba(0,0,0,.4);box-shadow:0 0 40px rgba(233,113,50,.3);display:flex;align-items:center;justify-content:center}
+  .hw1 .core .pb{font-family:var(--mono);font-weight:500;font-size:34px;line-height:1;white-space:nowrap}
+  .hw1 .sr{position:absolute;left:936px;top:185px;width:280px;height:80px;border-radius:14px;border:1.5px solid rgba(233,113,50,.6);background:rgba(233,113,50,.08);display:flex;flex-direction:column;justify-content:center;padding:0 20px}
+  .hw1 .sr b{font-size:22px;font-weight:500;color:var(--orange)}
+  .hw1 .sr span{font-size:16px;font-weight:300;color:rgba(255,255,255,.75);margin-top:3px}
+  .hw1 .apps{position:absolute;left:946px;top:326px;width:260px;height:330px}
+  .hw1 .zone{font-size:18px;font-weight:500;color:#fff;text-align:center;width:260px}
+  .hw1 .apps figure{position:absolute;margin:0;width:110px;text-align:center}
+  .hw1 .apps img{display:block;width:110px;height:110px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,.8)}
+  .hw1 .apps figcaption{font-size:16px;font-weight:300;color:rgba(255,255,255,.85);margin-top:6px}
+  .hw1 .stage{position:absolute;top:436px;font-size:18px;font-weight:500;color:var(--orange)}
+  .hw1 .evo{position:absolute;left:744px;top:356px;width:180px;font-size:16px;font-weight:300;font-style:italic;color:rgba(255,255,255,.6);line-height:1.35}
+  .hw1 .src2{position:absolute;top:504px;width:240px;text-align:center}
+  .hw1 .film.sm{height:90px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.16)}
+  .hw1 .film.sm i{height:56px}
+  .hw1 .hlk{height:90px;border-radius:8px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center}
+  .hw1 .hlk span{font-family:var(--mono);font-weight:500;font-size:30px;line-height:1;white-space:nowrap;color:rgba(255,255,255,.7)}
+  .hw1 .lb{margin-top:10px;font-size:17px;font-weight:300;color:rgba(255,255,255,.85);white-space:nowrap}
+
+  /* slide: HEXLink app + privacy */
+  .hlx .ttl .mn{font-family:var(--mono);font-weight:400}
+  .hlx .zone{position:absolute;top:140px;font-size:12px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--orange)}
+  .hlx .ph{position:absolute;height:430px;filter:drop-shadow(0 18px 30px rgba(0,0,0,.6))}
+  .hlx .p1{left:52px;top:170px}
+  .hlx .p2{left:228px;top:146px;height:470px;z-index:2}
+  .hlx .p3{left:410px;top:170px}
+  .hlx .pvh{position:absolute;left:730px;top:132px;font-size:24px;font-weight:300}
+  .hlx .pvv{position:absolute;left:730px;width:330px;height:186px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.16)}
+  .hlx .pvv video{display:block;width:100%;height:100%;object-fit:cover}
+  .hlx .pvv span{position:absolute;right:0;bottom:0;background:#000;padding:5px 12px;font-size:15px;font-weight:300}
+  .hlx .pvc{position:absolute;left:730px;top:598px;width:330px;text-align:center;font-size:16px;font-weight:300;color:rgba(255,255,255,.75)}
+  .hlx .pvai{position:absolute;left:1080px;top:340px;width:140px;text-align:center}
+  .hlx .pvai img{display:block;width:44px;height:44px;margin:0 auto 8px}
+  .hlx .pvai span{font-size:15px;font-weight:300;line-height:1.3}
+
+  /* traction: hotel industry: three centred columns sharing rows; logos along the bottom */
+  .hot1 .st{position:absolute;top:112px;width:340px;text-align:center;font-size:26px;font-weight:500}
+  .hot1 .st i{position:absolute;left:50%;top:42px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:#E48E5A;box-shadow:0 0 10px rgba(233,113,50,.8)}
+  .hot1 .st.hot{color:var(--orange)}
+  .hot1 .big{position:absolute;top:202px;width:340px;text-align:center;font-size:48px;font-weight:300;line-height:1;color:var(--orange);white-space:nowrap}
+  .hot1 .cap{position:absolute;top:274px;width:340px;margin:0;text-align:center;font-size:18px;font-weight:300;line-height:1.35}
+  .hot1 .fact{position:absolute;top:410px;width:340px;margin:0;text-align:center;font-size:15px;font-weight:300;color:rgba(255,255,255,.6)}
+  .hot1 .cap span{display:block;margin-top:6px;font-size:15px;color:rgba(255,255,255,.6)}
+  .hot1 .doc{position:absolute;top:470px;margin:0;width:120px}
+  .hot1 .doc img{display:block;width:120px;height:170px;object-fit:cover;object-position:top;border-radius:3px;box-shadow:0 10px 24px rgba(0,0,0,.6)}
+  .hot1 .doc b{position:absolute;left:-8px;top:-10px;background:var(--orange);font-size:13px;font-weight:500;padding:3px 8px;border-radius:4px}
+  .hot1 .bot{position:absolute;top:442px;height:200px}
+  .hot1 .lg2{position:absolute;top:336px;height:64px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;gap:14px;padding:8px 14px}
+  .hot1 .lg2 img{max-height:100%;max-width:100%;display:block}
+  /* traction: pipeline in a big arrow (logos placed loosely), stage names under the arrow, partners below */
+  .pipe .sub{position:absolute;left:64px;font-size:20px;font-weight:500;color:var(--orange)}
+  .pipe .lg{position:absolute;display:block}
+  .pipe .xm{display:flex;align-items:center;gap:10px}
+  .pipe .xm img{display:block}
+  .pipe .stg2{position:absolute;text-align:left;font-size:22px;font-weight:400;white-space:nowrap;color:#fff}
+  .pipe .stg2.hot{color:var(--orange);font-weight:500}
+  .pipe .eco{position:absolute;left:64px;right:64px;top:574px;display:flex;justify-content:space-between}
+  .pipe .eco .grp{display:flex;flex-direction:column;gap:8px}
+  .pipe .eco .k{font-size:20px;font-weight:500;color:var(--orange);line-height:1}
+  .pipe .eco .lr{display:flex;align-items:center;gap:20px;height:44px}
+  .pipe .eco img{display:block;opacity:.9}
+  .pipe .eco .nus{font-size:26px;font-weight:800;letter-spacing:.02em;color:#fff;opacity:.9;line-height:1}
+  .pipe .eco .b71{font-size:26px;font-weight:800;letter-spacing:-.02em;color:#fff;opacity:.9;line-height:1}
+  /* competition table */
+  .comp .grp{position:absolute;top:136px;text-align:center;font-size:18px;font-weight:500;color:var(--orange);border-bottom:1.5px solid rgba(233,113,50,.6);padding-bottom:6px}
+  .comp .hd{position:absolute;top:176px;width:104px;text-align:center;font-size:15px;font-weight:500;line-height:1.25;color:rgba(255,255,255,.9)}
+  .comp .cat{position:absolute;left:62px;width:300px;height:50px;display:flex;flex-direction:column;justify-content:center}
+  .comp .cat b{font-size:20px;font-weight:500;display:flex;align-items:center}
+  .comp .cat span{font-size:15px;font-weight:300;color:rgba(255,255,255,.6);margin-top:2px}
+  .comp .cat.me b{color:var(--orange);font-family:var(--mono)}
+  .comp .cell{position:absolute;width:104px;height:50px;display:flex;align-items:center;justify-content:center}
+  .comp i{display:inline-block;width:18px;height:18px;border-radius:50%;box-sizing:border-box}
+  .comp .d2{background:#fff}.comp .d2.o{background:var(--orange)}
+  .comp .d1.o{border-color:var(--orange);background:linear-gradient(90deg,var(--orange) 50%,transparent 50%)}
+  .comp .d1{border:2px solid #fff;background:linear-gradient(90deg,#fff 50%,transparent 50%)}
+  .comp .d0{border:1.5px solid rgba(255,255,255,.35)}
+  .comp .us{position:absolute;left:44px;right:58px;height:66px;border:1.5px solid var(--orange);border-radius:12px;background:rgba(233,113,50,.08)}
+  .comp .brk{position:absolute;left:44px;width:0;border-left:2px solid rgba(255,255,255,.35)}
+  .comp .brk.co{border-color:var(--orange)}
+  .comp .brk span{position:absolute;left:-14px;top:50%;transform:translate(-50%,-50%) rotate(-90deg);white-space:nowrap;font-size:13px;font-weight:500;color:rgba(255,255,255,.6)}
+  .comp .brk.co span{color:var(--orange)}
+  .comp .key{position:absolute;right:64px;top:650px;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:300;color:rgba(255,255,255,.7)}
+  .comp .key i{width:12px;height:12px;margin-left:12px}
+
+  /* team list */
+  .tm .lab{position:absolute;left:64px;font-size:17px;font-weight:400;color:rgba(255,255,255,.55)}
+  .tm .tr{position:absolute;left:180px;right:64px;height:72px;display:flex;align-items:center}
+  .tm .tr img{width:68px;height:68px;border-radius:50%;object-fit:cover;object-position:top;flex:none}
+  .tm .tr b{width:230px;margin-left:20px;font-size:21px;font-weight:500}
+  .tm .tr .r{width:170px;font-size:18px;font-weight:300;color:var(--orange)}
+  .tm .tr .c{flex:1;font-size:17px;font-weight:300;color:rgba(255,255,255,.75)}
+
+  /* icons */
+  .ic{display:inline-block;vertical-align:middle;flex:none}
+  .pi{display:inline-block;height:.69em;width:.69em;vertical-align:baseline;margin-right:.32em;overflow:visible}
+  .pi.lk{width:1.022em}
+  .ic.w{color:#fff}.ic.o{color:var(--orange);--eye:#fff}
+  .wires{position:absolute;left:0;top:0;pointer-events:none}
+  .m{border-radius:8px;overflow:hidden;background:#111;border:1px solid rgba(255,255,255,.16)}
+  .m video{display:block;width:100%;height:100%;object-fit:cover}
+
+  /* slide 4: solution map */
+  .sol .core{position:absolute;left:300px;top:130px;width:324px;height:156px;border-radius:16px;padding:20px 24px;background:linear-gradient(135deg,#E97132,#B9461C);box-shadow:0 0 50px rgba(233,113,50,.35);display:grid;grid-template-columns:auto 1fr;column-gap:14px;align-items:center}
+  .sol .core .nm{font-family:var(--mono);font-size:32px;font-weight:500;line-height:1.05}
+  .sol .core .sb{font-size:16px;opacity:.92}
+  .sol .core p{grid-column:1/-1;font-size:14.5px;font-weight:300;margin-top:12px;line-height:1.35}
+  .sol .star{position:absolute;left:996px;top:146px;width:220px;height:120px;border-radius:16px;border:1.5px solid var(--orange);background:rgba(0,0,0,.55);display:flex;flex-direction:column;justify-content:center;gap:8px;padding:0 22px}
+  .sol .star .nm{font-size:21px;font-weight:500;line-height:1.2}
+  .sol .plus{position:absolute;left:880px;top:302px;width:250px;border:1px dashed rgba(255,255,255,.4);border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.3;display:flex;gap:10px;align-items:center}
+  .sol .plus b{color:var(--orange);font-weight:500}
+  .sol .data{position:absolute;top:384px;width:244px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04)}
+  .sol .data.hex{border-color:var(--orange)}
+  .sol .data .m{height:126px;border:0;border-radius:0}
+  .sol .data .tx{padding:10px 16px 14px}
+  .sol .data .k{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+  .sol .data .nm{font-size:18px;font-weight:500;margin-top:4px;display:flex;align-items:center;gap:8px}
+  .sol .data .nm b{font-family:var(--mono);font-weight:500;color:var(--orange)}
+  .film{height:126px;background:#151515;display:flex;gap:6px;align-items:center;padding:0 12px;position:relative}
+  .film::before,.film::after{content:"";position:absolute;left:0;right:0;height:10px;background:repeating-linear-gradient(90deg,#2a2a2a 0 8px,transparent 8px 16px)}
+  .film::before{top:6px}.film::after{bottom:6px}
+  .film i{flex:1;height:84px;border-radius:3px;background:center/78% no-repeat,linear-gradient(160deg,#3a3430,#1c1a19);border:1px solid rgba(255,255,255,.08)}
+  .film i:nth-child(1){background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%2064%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.38%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%3E%3Ccircle%20cx%3D%2734%27%20cy%3D%2726%27%20r%3D%278%27/%3E%3Cpath%20d%3D%27M20%2056c0-10%206-17%2014-17s14%207%2014%2017%27/%3E%3Ccircle%20cx%3D%2766%27%20cy%3D%2728%27%20r%3D%277%27/%3E%3Cpath%20d%3D%27M54%2056c0-9%205-15%2012-15s12%206%2012%2015%27/%3E%3C/svg%3E"),linear-gradient(160deg,#3a3430,#1c1a19)}
+  .film i:nth-child(2){background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%2064%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.38%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%3E%3Ccircle%20cx%3D%2730%27%20cy%3D%2724%27%20r%3D%277%27/%3E%3Cpath%20d%3D%27M18%2050c0-9%205-15%2012-15s12%206%2012%2015%27/%3E%3Ccircle%20cx%3D%2752%27%20cy%3D%2730%27%20r%3D%275%27/%3E%3Cpath%20d%3D%27M44%2050c0-6%204-10%208-10s8%204%208%2010%27/%3E%3Ccircle%20cx%3D%2772%27%20cy%3D%2724%27%20r%3D%277%27/%3E%3Cpath%20d%3D%27M60%2050c0-9%205-15%2012-15s12%206%2012%2015%27/%3E%3Cpath%20d%3D%27M12%2052h76%27/%3E%3C/svg%3E"),linear-gradient(160deg,#3a3430,#1c1a19)}
+  .film i:nth-child(3){background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%2064%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.38%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%3E%3Ccircle%20cx%3D%2738%27%20cy%3D%2728%27%20r%3D%278%27/%3E%3Cpath%20d%3D%27M24%2058c0-10%206-17%2014-17s14%207%2014%2017%27/%3E%3Cpath%20d%3D%27M56%2014h28a4%204%200%200%201%204%204v10a4%204%200%200%201-4%204h-18l-6%206v-6h-4a4%204%200%200%201-4-4v-10a4%204%200%200%201%204-4z%27/%3E%3C/svg%3E"),linear-gradient(160deg,#3a3430,#1c1a19)}
+  .sol .pl{position:absolute;font-size:16px;font-weight:500;white-space:nowrap}
+  .sol .pl.o{color:var(--orange);text-align:right;width:166px}
+  .sol .pl.o span{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,113,50,.8);margin-top:2px}
+  .sol .pl.ph{width:200px;text-align:center}
+  .sol .pl.ph span{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:2px}
+  .sol .rsi{position:absolute;left:1000px;top:628px;font-size:13px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--orange)}
+
+  /* slide 5: HEXWorld diagram (upper-layer brain over a manipulation model) */
+  .hw .time{position:absolute;left:612px;top:148px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:rgba(255,255,255,.45)}
+  .hw figure{position:absolute;margin:0;text-align:center}
+  .hw figure .m{width:200px;height:113px}
+  .hw figcaption{font-size:14px;font-weight:300;color:rgba(255,255,255,.75);margin-top:8px}
+  .hw .in{left:64px;top:182px}
+  .hw .out{left:1000px;top:516px}.hw .out .m{width:200px;height:113px;border-color:var(--orange);box-shadow:0 0 24px rgba(233,113,50,.3)}
+  .hw .out figcaption{display:none}
+  .hw .enc{position:absolute;left:296px;width:150px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500}
+  .hw .enc.v{background:#5E4A3E}.hw .enc.a{background:#3F4B5C}.hw .enc.r{background:#3B3B3B}
+  .hw .rl{position:absolute;left:462px;width:150px;font-size:14px;color:rgba(255,255,255,.8)}
+  .hw .rl.o{left:700px;width:180px;text-align:right;color:#fff}
+  .hw .tok{position:absolute;width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;font-weight:500;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+  .hw .tok.v{background:#7A6050}.hw .tok.a{background:#56667C}.hw .tok.r{background:#4A4A4A}.hw .tok.e{background:var(--orange)}
+  .hw .model{position:absolute;left:596px;top:334px;width:400px;height:62px;border-radius:12px;background:#fff;color:#1a1a1a;display:flex;align-items:center;justify-content:center;gap:12px;font-size:18px;box-shadow:0 0 40px rgba(233,113,50,.3)}
+  .hw .model b{font-family:var(--mono);font-weight:500}
+  .hw .manip{position:absolute;left:984px;top:422px;width:232px;height:66px;border-radius:12px;border:1.5px dashed rgba(255,255,255,.5);display:flex;align-items:center;gap:12px;padding:0 16px}
+  .hw .manip .nm{font-size:16px;font-weight:500}.hw .manip .sb{font-size:13px;font-weight:300;color:rgba(255,255,255,.65);margin-top:2px}
+  .hw .layer{position:absolute;left:1010px;top:352px;font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--orange)}
+  .hw .layer.lo{top:402px;left:1062px;color:rgba(255,255,255,.55)}
+
+  /* slide 6: HEXLink */
+  .hl6 .col{position:absolute;top:214px}
+  .hl6 .hd{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:500;margin-bottom:14px}
+  .hl6 .hd span{margin-left:4px}
+  .hl6 .grid4{display:grid;grid-template-columns:196px 196px;gap:12px}
+  .hl6 .grid4 .m{height:118px}
+  .hl6 .m.big{width:372px;height:209px;border-color:var(--orange)}
+  .hl6 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;width:372px}
+  .hl6 .chips i{font-style:normal;font-size:13px;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 10px;color:rgba(255,255,255,.9)}
+  .hl6 .dataset{position:absolute;left:944px;top:346px;width:140px;height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;font-size:15px;font-weight:500;line-height:1.2}
+  .hl6 .dst{position:absolute;left:1112px;width:130px;display:flex;align-items:center;gap:8px;font-size:15px;line-height:1.25}
+  .hl6 .dst b{font-family:var(--mono);font-weight:500;color:var(--orange)}
+
+  /* demo slide */
+  .demo .ttl b{font-family:var(--mono);font-weight:400}
+  .demo .sc{position:absolute;left:64px;font-size:22px;font-weight:500}
+  .demo .sc span{color:var(--orange)}
+  .demo .fr{position:absolute;margin:0;width:270px;transform:translateY(-100%)}
+  .demo .fr img{display:block;width:270px;height:152px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.16)}
+  .demo .fr figcaption{margin-top:12px;line-height:1;font-size:16px;font-weight:300;color:rgba(255,255,255,.85)}
+  .demo .ar{position:absolute;width:26px;height:14px}
+  .demo .ar::before{content:"";position:absolute;left:0;right:6px;top:6px;height:2px;background:var(--orange)}
+  .demo .ar::after{content:"";position:absolute;right:0;top:1px;border:6px solid transparent;border-left:8px solid var(--orange);border-right:0}
+  .demo .m.clip{position:absolute;width:416px;height:234px;border-color:var(--orange);box-shadow:0 0 30px rgba(233,113,50,.22)}
+  .demo .sep{position:absolute;left:64px;right:64px;top:385px;border-top:1px dashed rgba(255,255,255,.2)}
+  /* privacy slide */
+  .priv figure{position:absolute;top:180px;margin:0;text-align:center}
+  .priv figure .m{width:400px;height:225px}
+  .priv .raw{left:140px}.priv .safe{left:740px}.priv .safe .m{border-color:var(--orange);box-shadow:0 0 30px rgba(233,113,50,.25)}
+  .priv figcaption{font-size:16px;font-weight:300;color:rgba(255,255,255,.8);margin-top:10px}
+  .priv .xf{position:absolute;left:560px;top:216px;width:160px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;font-size:14px;color:#fff}
+  .priv .steps{position:absolute;left:140px;right:140px;top:500px;list-style:none;display:flex;justify-content:space-between;border-top:1px solid rgba(255,255,255,.14);padding-top:26px}
+  .priv .steps li{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:300}
+  .priv .steps b{font-weight:500;margin-right:-4px}
+
+  /* business model */
+  .bm .hd{position:absolute;top:310px;font-size:26px;font-weight:400;color:#fff;background:#000;padding:4px 18px;border-radius:999px;border:1.5px solid rgba(255,255,255,.5);line-height:1.2;z-index:2}
+  .bm .hd.hot{border-color:var(--orange)}
+  .bm .hd.hot{color:var(--orange);font-weight:500}
+  .bm .pr{position:absolute;left:64px;font-family:var(--mono);font-weight:500;font-size:32px;line-height:1;white-space:nowrap}
+  .bm .it{position:absolute;width:400px}
+  .bm .it b{display:block;font-size:28px;font-weight:400;line-height:1.2}
+  .bm .it span{display:block;margin-top:8px;font-size:18px;font-weight:300;color:rgba(255,255,255,.7)}
+  .bm .it.hot b{color:var(--orange)}
+  .bm .cust{position:absolute;left:64px;right:64px;top:570px;font-size:22px;font-weight:300;display:flex;align-items:baseline;gap:16px}
+  .bm .cust span{font-size:22px;font-weight:500;color:var(--orange)}
+
+  /* market size (nested circles) */
+  .tbd,.mkt2 .num i{font-style:normal;color:var(--orange)}
+  .mkt2 .ring{position:absolute;border-radius:50%;background:rgba(207,101,48,.28);border:1px solid rgba(233,113,50,.5)}
+  .mkt2 .ring.r0{background:#24130b}
+  .mkt2 .ring.r1{background:#4a2414}
+  .mkt2 .ring.r2{background:#80391b}
+  .mkt2 .ring.r3{background:#d0632c}
+  .mkt2 .num{position:absolute;left:183px;width:200px;text-align:center;font-size:28px;font-weight:500}
+  .mkt2 .lead{position:absolute;border-top:1px solid rgba(255,255,255,.6)}
+  .mkt2 .lead::before{content:"";position:absolute;left:-4px;top:-4.5px;width:8px;height:8px;border-radius:50%;background:#fff}
+  .mkt2 .desc{position:absolute;left:660px;width:560px}
+  .mkt2 .desc b{display:block;font-size:28px;line-height:1.1;font-weight:500;color:var(--orange)}
+  .mkt2 .logic{position:absolute;left:660px;top:612px;width:560px;display:flex;flex-direction:column;gap:8px;font-size:16px;font-weight:300;color:rgba(255,255,255,.8)}
+  .mkt2 .logic b{font-family:var(--mono);font-weight:500;color:#fff;margin-right:10px}
+  .mkt2 .logic i{font-style:normal;color:var(--orange);margin:0 4px}
+  .mkt2 .desc span{display:block;font-size:18px;font-weight:300;color:rgba(255,255,255,.85);margin-top:2px;line-height:1.35}
+
+  /* ---------- team (kept from the 2026-09 deck: same positions and styles) ---------- */
+  .team{background-image:url(assets/bg-1.jpg)}
+  .team .ttl{position:absolute;left:0;right:0;top:34px;text-align:center;font-size:46px;font-weight:300;line-height:1.2}
+  .team .ph{position:absolute;border-radius:50%;overflow:hidden;background:#fff}
+  .team .ph img{position:absolute;display:block}
+  .team .nm{position:absolute;text-align:center;font-size:24px;font-weight:500;line-height:1.25}
+  .team .nm b{display:block;font-weight:500}
+  .team .nm span{display:block;margin-top:8px}
+  .team .bl{position:absolute;list-style:none;font-size:17.3px;font-weight:300;line-height:1.2}
+  .team .bl li{position:relative;padding-left:19px}
+  .team .bl li::before{content:"";position:absolute;left:3px;top:.42em;width:7px;height:7px;border-radius:50%;background:#DB6639}
+
+  /* ---------- closing ---------- */
+  .closing{background-image:url(assets/bg-1.jpg)}
+  .closing .logo{left:50%;top:48px;height:84px;transform:translateX(-50%)}
+  .closing h1{left:0;right:0;top:196px;text-align:center;font-size:58px;line-height:1.12;font-weight:500;letter-spacing:-.012em}
+  .closing .sub{left:0;right:0;top:350px;text-align:center;font-size:26px;font-weight:300;color:rgba(255,255,255,.85)}
+  .closing .shake{left:350px;top:412px;width:580px;height:308px}
+  .closing .shake img{width:580px;height:529px;left:0;top:0;mix-blend-mode:screen}
+  /* closing logo animation (option G): rings meet, the point pops, a copy hops onto the i, then the letters appear.
+     Runs only while .play is set by show(); the end state equals the static logo */
+  .closing .logo{width:auto}
+  .closing .rg,.closing .ripple,.closing .dot,.closing .hopd{transform-box:fill-box;transform-origin:center}
+  .closing .hopx{opacity:0}
+  @keyframes cl-inL{from{opacity:0;transform:translateX(-90px)}to{opacity:1;transform:none}}
+  @keyframes cl-inR{from{opacity:0;transform:translateX(90px)}to{opacity:1;transform:none}}
+  @keyframes cl-pop{0%{opacity:0;transform:scale(0)}70%{opacity:1;transform:scale(1.35)}100%{opacity:1;transform:scale(1)}}
+  @keyframes cl-ripple{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(4.5)}}
+  @keyframes cl-hopx{0%{opacity:1;transform:none}100%{opacity:1;transform:translateX(563.15px)}}
+  @keyframes cl-hopy{0%{transform:none;animation-timing-function:cubic-bezier(.2,.6,.4,1)}45%{transform:translateY(-115px);animation-timing-function:cubic-bezier(.6,0,.8,.4)}100%{transform:translateY(-47.49px)}}
+  @keyframes cl-land{0%,100%{transform:none}40%{transform:scale(1.45,.7)}}
+  @keyframes cl-word{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+  .closing.play .rg1{animation:cl-inL .9s cubic-bezier(.5,0,.2,1) .2s both}
+  .closing.play .rg2{animation:cl-inR .9s cubic-bezier(.5,0,.2,1) .2s both}
+  .closing.play .dot{animation:cl-pop .45s ease-out 1.1s both}
+  .closing.play .ripple{animation:cl-ripple .8s ease-out 1.15s forwards}
+  .closing.play .hopx{animation:cl-hopx .8s cubic-bezier(.4,0,.6,1) 1.6s forwards}
+  .closing.play .hopy{animation:cl-hopy .8s linear 1.6s both}
+  .closing.play .hopd{animation:cl-land .3s ease-out 2.4s both}
+  .closing.play .idot{opacity:0}
+  .closing.play .word{animation:cl-word .6s ease-out 2.45s both}
+  @media (prefers-reduced-motion:reduce){.closing.play *{animation:none!important}.closing.play .hopx{opacity:0}.closing.play .idot{opacity:1}}
+  @media print{.closing.play *{animation:none!important}.closing.play .hopx{opacity:0}.closing.play .idot{opacity:1}}
+
+  /* ---------- nav / print ---------- */
+  .nav{position:fixed;top:14px;left:18px;display:flex;gap:8px;align-items:center;color:#B9BCD3;font:12px var(--font);z-index:5;opacity:.25;transition:opacity .2s}
+  .nav:hover{opacity:1}
+  .nav button{background:#262626;border:0;color:#fff;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:14px}
+  @media print{
+    @page{size:1280px 720px;margin:0}
+    html,body{background:#000}
+    .viewport{position:static;display:block}
+    .deck{transform:none!important;height:auto}
+    .slide{position:relative;display:block!important;width:1280px;height:720px;page-break-after:always}
+    .nav,.rot{display:none!important}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-hexworld" viewBox="19.57 17.02 78.43 78.98"><defs><mask id="clapcut" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120"><rect width="120" height="120" fill="#fff"/><path d="M44 27.4 L56 25.3 L50 39.4 L38 41.5 Z M68 23.2 L80 21.1 L74 35.2 L62 37.3 Z" fill="#000"/></mask></defs><rect x="22" y="30" width="76" height="14" rx="3" fill="currentColor" transform="rotate(-10 22 44)" mask="url(#clapcut)"/><rect x="22" y="50" width="76" height="46" rx="6" fill="currentColor"/><rect x="46.4" y="69.4" width="7.2" height="7.2" fill="var(--eye,#E97132)" transform="rotate(45 50 73)"/><rect x="66.4" y="69.4" width="7.2" height="7.2" fill="var(--eye,#E97132)" transform="rotate(45 70 73)"/></symbol>
+  <symbol id="i-hexlink" viewBox="22 32 80 54"><g fill="currentColor"><circle cx="38" cy="70" r="16"/><circle cx="60" cy="56" r="24"/><circle cx="84" cy="68" r="18"/><rect x="38" y="62" width="46" height="24"/></g><rect x="48.4" y="62.4" width="7.2" height="7.2" fill="var(--eye,#E97132)" transform="rotate(45 52 66)"/><rect x="66.4" y="62.4" width="7.2" height="7.2" fill="var(--eye,#E97132)" transform="rotate(45 70 66)"/></symbol>
+  <symbol id="i-film" viewBox="0 0 48 48"><rect x="6" y="9" width="36" height="30" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 9v30M34 9v30M6 17h8M6 24h8M6 31h8M34 17h8M34 24h8M34 31h8" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 48 48"><rect x="14" y="5" width="20" height="38" rx="4" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M21 38h6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+  <symbol id="i-glasses" viewBox="0 0 48 48"><circle cx="14" cy="27" r="8" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="34" cy="27" r="8" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M22 26c1.5-2 2.5-2 4 0M6 25l-2-8M42 25l2-8" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="i-arm" viewBox="0 0 48 48"><path d="M8 42h18M17 42V33l8-12 12 4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="17" cy="33" r="2.6" fill="currentColor"/><circle cx="25" cy="21" r="2.6" fill="currentColor"/><path d="M37 25l4-5M37 25l5 2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 48 48"><path d="M24 5l15 6v11c0 10-6.5 17-15 21-8.5-4-15-11-15-21V11z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M17 24l5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 48 48"><path d="M6 8h18l18 18-16 16L6 24z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="15" cy="17" r="3" fill="currentColor"/></symbol>
+  <symbol id="i-db" viewBox="0 0 48 48"><ellipse cx="24" cy="11" rx="15" ry="5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M9 11v26c0 2.8 6.7 5 15 5s15-2.2 15-5V11M9 24c0 2.8 6.7 5 15 5s15-2.2 15-5" fill="none" stroke="currentColor" stroke-width="2.2"/></symbol>
+  <symbol id="i-star" viewBox="0 0 48 48"><rect x="15" y="15" width="18" height="18" transform="rotate(45 24 24)" fill="currentColor"/></symbol>
+</svg>
+<div class="viewport"><div class="deck" id="deck">
+
+  <!-- 1. Cover -->
+  <section class="slide cover">
+    <img class="abs logo" src="assets/connexis-wordmark-white.svg" alt="Connexis">
+    <h1 class="abs">Bringing <span class="hl">Social Intelligence</span><br>to Physical AI</h1>
+    <p class="abs by"><span>Qiqing Wang</span><span>Co-founder and CEO</span></p>
+    <div class="art">
+      <div class="crop hand"><img src="assets/hand-ribbon.png" alt=""></div>
+      <div class="crop ribbon"><img src="assets/hand-ribbon.png" alt=""></div>
+      <div class="crop robot"><img src="assets/robot.png" alt=""></div>
+    </div>
+    <div class="prods">
+      <div class="prod"><b>HEXLink</b><span>Regulation-compliant human experiential data at scale</span></div>
+      <div class="prod"><b>HEXWorld</b><span>General-purpose social brain for any robot</span></div>
+    </div>
+  </section>
+
+  <!-- (body slides go here) -->
+
+  <!-- 2. The rise of robots: old deck timeline curve, split into three eras (science fiction, physical intelligence, social intelligence) -->
+  <section class="slide body rise2">
+    <h2 class="ttl">Robots can do tasks, but cannot read people</h2>
+    <div class="div" style="left:250px"></div><div class="div" style="left:822px"></div>
+    <svg class="curve" viewBox="0 0 1280 720" width="1280" height="720">
+      <defs>
+        <clipPath id="r2a"><rect x="0" y="0" width="110" height="720"/><rect x="400" y="0" width="880" height="720"/></clipPath>
+        <clipPath id="r2c"><rect x="110" y="0" width="290" height="720"/></clipPath>
+        <filter id="r2g" x="-10%" y="-200%" width="120%" height="500%"><feGaussianBlur stdDeviation="5"/></filter>
+        <marker id="r2h" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#E97132"/></marker>
+      </defs>
+      <path d="M0.0 514.5 C73.0 488.9 146.0 463.2 230.4 440.7 C314.8 418.1 404.3 397.3 506.4 379.1 C608.5 361.0 742.9 343.8 842.8 332.0 C942.8 320.2 1039.2 313.7 1106.3 308.4 C1173.4 303.1 1201.5 302.2 1245.5 300.2" fill="none" stroke="#E97132" stroke-width="8" opacity=".35" filter="url(#r2g)" clip-path="url(#r2a)"/>
+      <path d="M0.0 514.5 C73.0 488.9 146.0 463.2 230.4 440.7 C314.8 418.1 404.3 397.3 506.4 379.1 C608.5 361.0 742.9 343.8 842.8 332.0 C942.8 320.2 1039.2 313.7 1106.3 308.4 C1173.4 303.1 1201.5 302.2 1245.5 300.2" fill="none" stroke="#E97132" stroke-width="2.5" clip-path="url(#r2a)" marker-end="url(#r2h)"/>
+      <path d="M0.0 514.5 C73.0 488.9 146.0 463.2 230.4 440.7 C314.8 418.1 404.3 397.3 506.4 379.1 C608.5 361.0 742.9 343.8 842.8 332.0 C942.8 320.2 1039.2 313.7 1106.3 308.4 C1173.4 303.1 1201.5 302.2 1245.5 300.2" fill="none" stroke="#E97132" stroke-width="2.5" stroke-dasharray="7 7" clip-path="url(#r2c)"/>
+        </svg>
+    <div class="dot" style="left:110px;top:476.7px"></div>
+    <div class="lnk" style="left:110px;top:436.7px;height:32px"></div>
+    <div class="clip" style="left:34px;top:335.7px"><img src="assets/rise/scifi.jpg" alt=""></div>
+    <div class="cr" style="left:34px;top:316.7px;width:180px;text-align:right">Star Wars</div>
+    <div class="yr" style="left:-40px;top:490.7px"><b>1977</b></div>
+    <div class="dot" style="left:400px;top:399.9px"></div>
+    <div class="lnk" style="left:400px;top:359.9px;height:32px"></div>
+    <div class="clip" style="left:280px;top:258.9px"><video src="assets/video/old-demos.mp4" poster="assets/video/old-demos.jpg" style="transform:scale(1.1);transform-origin:50% 0" muted loop playsinline preload="metadata"></video></div>
+    <div class="cr" style="left:280px;top:239.9px;width:180px;text-align:right">Figure AI</div>
+    <div class="yr" style="left:250px;top:413.9px"><b>2025</b><span>Factory deployment</span></div>
+    <div class="dot" style="left:540px;top:373.4px"></div>
+    <div class="lnk" style="left:540px;top:381.4px;height:32px"></div>
+    <div class="clip" style="left:500px;top:413.4px"><video src="assets/video/old-gala.mp4" poster="assets/video/old-gala.jpg" muted loop playsinline preload="metadata"></video></div>
+    <div class="cr" style="left:500px;top:519.4px;width:180px;text-align:right">Unitree</div>
+    <div class="yr" style="left:390px;top:315.4px"><b>2026</b><span>Impressive demos</span></div>
+    <div class="dot" style="left:720px;top:347.2px"></div>
+    <div class="lnk" style="left:720px;top:307.2px;height:32px"></div>
+    <div class="clip" style="left:600px;top:206.2px"><img src="assets/rise/factory.png" alt=""></div>
+    <div class="cr" style="left:600px;top:187.2px;width:180px;text-align:right">Tesla</div>
+    <div class="yr" style="left:570px;top:361.2px"><b>2027</b><span>Mass production</span></div>
+    <div class="dot hot" style="left:950px;top:321.0px"></div>
+    <div class="lnk hot" style="left:950px;top:329.0px;height:32px"></div>
+    <div class="clip hot" style="left:905px;top:361.0px"><img src="assets/rise/walk.jpg" alt=""></div>
+    <div class="cr" style="left:905px;top:467.0px;width:180px;text-align:right">Forbes estimate for 2035</div>
+    <div class="yr hot big" style="left:800px;top:235.0px"><span>13–30 million<br>humanoid robots<br>will walk among us</span></div>
+    <div class="dot hot" style="left:1170px;top:303.9px"></div>
+    <div class="yr hot big" style="left:1020px;top:233.9px"><span>1–3 billion<br>humanoid robots</span></div>
+    <div class="scn" style="left:905px;width:180px;top:496px">Hotels, hospitals and homes</div>
+    <div class="era" style="left:0;width:250px">Science Fiction</div>
+    <div class="era" style="left:250px;width:572px">Physical Intelligence<small>Locomotion mature, manipulation maturing</small></div>
+    <div class="era hot" style="left:822px;width:458px">Social Intelligence<small>Not yet solved</small></div>
+  </section>
+
+  <!-- 3. Robots today (bottom left) -> robots tomorrow (top right), two missing steps between: data gap, model gap -->
+  <section class="slide body tt">
+    <h2 class="ttl">Robots can do tasks, but cannot read people</h2>
+    <svg class="br" viewBox="0 0 1280 720" width="1280" height="720">
+      <path d="M64 470 L400 470" stroke="rgba(255,255,255,.75)" stroke-width="2"/>
+      <defs><marker id="tth" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#E97132"/></marker>
+        <filter id="ttg" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>
+        <linearGradient id="tta" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".99" stop-color="#E48E5A" stop-opacity=".527"/></linearGradient>
+        <clipPath id="tt1"><rect x="0" y="330" width="1280" height="390"/></clipPath><clipPath id="tt2"><rect x="0" y="0" width="1280" height="330"/></clipPath></defs>
+      <path d="M880 200 L1216 200" stroke="#E97132" stroke-width="3"/>
+      <path d="M 464.0 0.0 L 535.7 42.9 L 499.0 118.0 L 492.5 96.0 L 491.1 96.0 C 424.9 96.9 349.8 105.5 271.6 122.3 C 180.4 142.0 98.1 170.2 32.3 202.1 L 14.3 211.3 L 0.0 118.1 L 9.9 118.5 C 82.5 119.1 167.6 110.3 257.0 91.0 C 331.5 74.9 400.1 53.5 458.6 29.2 L 471.0 23.7 Z" fill="url(#tta)" transform="translate(425 300) scale(.82) rotate(-8.35 267.8 105.7)"/>
+    </svg>
+
+    <div class="side" style="left:64px;top:408px"><div class="nm">Robots Today</div><div class="ss">Pre-defined tasks</div></div>
+    <div class="m big" style="left:64px;top:492px"><video src="assets/video/old-demos.mp4" poster="assets/video/old-demos.jpg" style="transform:scale(1.1);transform-origin:50% 0" muted loop playsinline preload="metadata"></video></div>
+    <div class="m sm" style="left:262px;top:586px"><video src="assets/video/old-gala.mp4" poster="assets/video/old-gala.jpg" muted loop playsinline preload="metadata"></video></div>
+
+    <p class="def">Missing <span>social intelligence</span><br>to scale deployment in human-facing environments<small>— Robot makers</small></p>
+
+    <div class="side hot" style="left:880px;top:138px"><div class="nm">Robots Tomorrow</div><div class="ss">Read people and respond</div></div>
+    <img class="rbt" src="assets/story/robot-standing-cut.png" alt="">
+    <figure class="cir" style="top:222px"><figcaption>Human sensitivity</figcaption><img src="assets/story/human-sensitivity.jpg" alt=""></figure>
+    <figure class="cir" style="top:366px"><figcaption>Culture sensitivity</figcaption><img src="assets/story/culture-sensitivity.jpg" alt=""></figure>
+
+  </section>
+
+  <!-- 4. Our solution: internet data + HEXLink data -> HEXWorld (social intelligence) -> any embodiment, any manipulation model (physical intelligence) -->
+  <section class="slide body lay">
+    <h2 class="ttl"><span class="mn">HEXWorld</span> + <span class="mn">HEXLink</span>: Social Intelligence Layer for Robot Makers</h2>
+    <svg class="wires" viewBox="0 0 1280 720" width="1280" height="720">
+      <defs><marker id="lyh" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#E97132"/></marker></defs>
+      <path d="M900 138 L900 640" stroke="rgba(255,255,255,.3)" stroke-width="1.2" stroke-dasharray="6 6"/>
+      <path d="M352 262 C420 262 420 340 468 344" stroke="#E97132" stroke-width="2" fill="none" marker-end="url(#lyh)"/>
+      <path d="M352 470 C420 470 420 388 468 384" stroke="#E97132" stroke-width="2" fill="none" marker-end="url(#lyh)"/>
+      <path d="M784 352 C850 352 870 246 924 246" stroke="#E97132" stroke-width="2" fill="none" marker-end="url(#lyh)"/>
+      <path d="M784 376 C850 376 870 482 924 482" stroke="#E97132" stroke-width="2" fill="none" marker-end="url(#lyh)"/>
+    </svg>
+    <div class="zone" style="left:96px">Social Intelligence</div>
+    <div class="zone ph" style="left:930px">Physical Intelligence</div>
+
+    <div class="in" style="top:204px"><div class="film"><i></i><i></i><i></i></div><div class="lb">Internet data (films and TV series)</div></div>
+    <div class="in" style="top:430px"><div class="hlk"><span><svg class="pi lk ic w"><use href="#i-hexlink"/></svg>HEXLink</span></div><div class="lb">Crowd-sourced human data</div></div>
+
+    <div class="core"><span class="pb big"><svg class="pi ic w"><use href="#i-hexworld"/></svg>HEXWorld</span><p>General-purpose social brain</p></div>
+
+    <div class="out" style="top:196px"><div class="lb">Any manipulation model</div>
+      <div class="chips"><span>π0.5</span><span>GR00T</span><span>…</span></div></div>
+    <div class="out" style="top:300px"><div class="lb">Any embodiment</div>
+      <div class="bots">
+        <img src="assets/robots/unitree-g1.png" alt="" style="left:0;top:0;height:150px">
+        <img src="assets/robots/unitree-r1.png" alt="" style="left:100px;top:40px;height:110px">
+        <img src="assets/robots/booster-t2.png" alt="" style="left:214px;top:30px;height:100px">
+        <img src="assets/robots/agilex-piperx.png" alt="" style="left:6px;top:166px;height:92px">
+        <img src="assets/robots/franka.png" alt="" style="left:150px;top:160px;height:100px">
+      </div></div>
+  </section>
+
+
+  <!-- 5. HEXWorld: inputs -> HEXWorld -> social reasoning -> applications; below, data injected over time (pre-training, post-training) as the model evolves -->
+  <section class="slide body hw1">
+    <h2 class="ttl"><span class="mn">HEXWorld</span>: General-Purpose Social Brain</h2>
+    <svg class="wires" viewBox="0 0 1280 720" width="1280" height="720">
+      <defs><marker id="h1o" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#E97132"/></marker>
+        <marker id="h1w" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="rgba(255,255,255,.6)"/></marker>
+        <marker id="h1s" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="3.6" markerHeight="3.6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#E97132"/></marker>
+        <linearGradient id="h1g" gradientUnits="userSpaceOnUse" x1="64" y1="0" x2="724" y2="0"><stop offset="0" stop-color="#E97132" stop-opacity=".25"/><stop offset="1" stop-color="#E97132"/></linearGradient></defs>
+      <path d="M306 150 L522 150" stroke="rgba(255,255,255,.35)" stroke-width="1.2" marker-end="url(#h1w)"/>
+      <path d="M538 225 L578 225" stroke="rgba(255,255,255,.6)" stroke-width="1.5" marker-end="url(#h1w)"/>
+      <path d="M868 225 L928 225" stroke="#E97132" stroke-width="2" marker-end="url(#h1o)"/>
+      <path d="M1076 270 L1076 318" stroke="#E97132" stroke-width="2" marker-end="url(#h1o)"/>
+      <path d="M80 470 L704 470 Q724 470 724 450 L724 280" stroke="url(#h1g)" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M724 300 L724 278" stroke="#E97132" stroke-width="4" marker-end="url(#h1s)"/>
+      <path d="M220 500 L220 480" stroke="#E97132" stroke-width="2" marker-end="url(#h1o)"/>
+      <path d="M540 500 L540 480" stroke="#E97132" stroke-width="2" marker-end="url(#h1o)"/>
+    </svg>
+
+    <div class="time">TIME</div>
+    <div class="rl" style="top:174px">Video <span>(face, gaze, gesture)</span></div><i class="tk v" style="left:306px;top:168px">V</i><i class="tk v" style="left:344px;top:168px">V</i><i class="tk v" style="left:382px;top:168px">V</i><i class="tk v" style="left:420px;top:168px">V</i><i class="tk v" style="left:458px;top:168px">V</i><i class="tk v" style="left:496px;top:168px">V</i>
+    <div class="rl" style="top:214px">Audio <span>(speech, tone)</span></div><i class="tk a" style="left:306px;top:208px">A</i><i class="tk a" style="left:344px;top:208px">A</i><i class="tk a" style="left:382px;top:208px">A</i><i class="tk a" style="left:420px;top:208px">A</i><i class="tk a" style="left:458px;top:208px">A</i><i class="tk a" style="left:496px;top:208px">A</i>
+    <div class="rl" style="top:254px">Robot state <span>(its actions)</span></div><i class="tk r" style="left:306px;top:248px">R</i><i class="tk r" style="left:344px;top:248px">R</i><i class="tk r" style="left:382px;top:248px">R</i><i class="tk r" style="left:420px;top:248px">R</i><i class="tk r" style="left:458px;top:248px">R</i><i class="tk r" style="left:496px;top:248px">R</i>
+
+    <div class="core"><span class="pb"><svg class="pi ic w"><use href="#i-hexworld"/></svg>HEXWorld</span></div>
+    <div class="sr"><b>Social reasoning</b><span>Reads the situation, predicts what people expect</span></div>
+
+    <div class="apps"><div class="zone">Applications</div>
+      <figure style="left:0;top:28px"><img src="assets/story/app-hotel.jpg" alt=""><figcaption>Hotels</figcaption></figure>
+      <figure style="left:150px;top:28px"><img src="assets/story/app-care.jpg" alt=""><figcaption>Hospitals</figcaption></figure>
+      <figure style="left:75px;top:168px"><img src="assets/story/app-home.jpg" alt=""><figcaption>Homes</figcaption></figure>
+    </div>
+
+    <div class="stage" style="left:96px">Pre-training</div>
+    <div class="stage" style="left:416px">Post-training</div>
+    <div class="evo">Model evolves with every round of data</div>
+    <div class="src2" style="left:100px"><div class="film sm"><i></i><i></i><i></i></div><div class="lb">Internet data (films and TV series)</div></div>
+    <div class="src2" style="left:420px"><div class="hlk"><span><svg class="pi lk ic w"><use href="#i-hexlink"/></svg>HEXLink</span></div><div class="lb">Crowd-sourced human data</div></div>
+  </section>
+
+  <!-- 6. HEXLink: the app (left) and how we protect privacy (right) -->
+  <section class="slide body hlx">
+    <h2 class="ttl"><span class="mn">HEXLink</span>: Experiential Data Orchestration Platform</h2>
+    <svg class="wires" viewBox="0 0 1280 720" width="1280" height="720">
+      <defs><marker id="hxo" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#E97132"/></marker></defs>
+      <path d="M660 140 L660 640" stroke="rgba(255,255,255,.5)" stroke-width="1.5" stroke-dasharray="6 6"/>
+      <defs><marker id="hxw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#fff"/></marker></defs>
+      <path d="M1061 289 L1150 289 L1150 334 M1150 446 L1150 491 L1066 491" stroke="#fff" stroke-width="1.5" stroke-dasharray="3 4" fill="none" marker-end="url(#hxw)"/>
+    </svg>
+    <img class="ph p1" src="assets/hexlink/app-welcome.png" alt="">
+    <img class="ph p2" src="assets/hexlink/app-home.png" alt="">
+    <img class="ph p3" src="assets/hexlink/app-instructions.png" alt="">
+
+    <div class="pvh">How We Protect Privacy</div>
+    <div class="pvc">Privacy-preserving video transformation</div>
+    <div class="pvv" style="top:196px"><video src="assets/video/interaction-2.mp4" poster="assets/video/interaction-2.jpg" muted loop playsinline preload="metadata"></video><span>Raw data w/ sensitive info</span></div>
+    <div class="pvv" style="top:398px"><video src="assets/video/interaction.mp4" poster="assets/video/interaction.jpg" muted loop playsinline preload="metadata"></video><span>Permissioned data w/o sensitive info</span></div>
+    <div class="pvai"><img src="assets/hexlink/ai-icon.png" alt=""><span>AI-based video<br>generation model</span></div>
+  </section>
+
+  <!-- Traction 1: HEXWorld v1 demo -->
+  <section class="slide body demo">
+    <h2 class="ttl">Traction: <b>HEXWorld v0.1</b></h2>
+    <div class="sc" style="top:118px">Scene 1: <span>happiness</span></div>
+    <figure class="fr" style="left:64px;top:356px"><img src="assets/demo/f8.jpg" alt=""><figcaption>Detects happiness</figcaption></figure>
+    <figure class="fr" style="left:394px;top:356px"><img src="assets/demo/f17.jpg" alt=""><figcaption>Shares the joy with a toy</figcaption></figure>
+    <div class="ar" style="left:351px;top:245px"></div>
+    <div class="m clip" style="left:800px;top:122px"><video src="assets/demo/joy.mp4" poster="assets/demo/joy.jpg" muted loop playsinline preload="metadata"></video></div>
+    <div class="sc" style="top:410px">Scene 2: <span>sadness</span></div>
+    <figure class="fr" style="left:64px;top:648px"><img src="assets/demo/f29.jpg" alt=""><figcaption>Detects sadness</figcaption></figure>
+    <figure class="fr" style="left:394px;top:648px"><img src="assets/demo/f41.jpg" alt=""><figcaption>Comforts with a tissue</figcaption></figure>
+    <div class="ar" style="left:351px;top:537px"></div>
+    <div class="m clip" style="left:800px;top:414px"><video src="assets/demo/care.mp4" poster="assets/demo/care.jpg" muted loop playsinline preload="metadata"></video></div>
+  </section>
+
+  <!-- Traction 2: hotel industry. Data collection (hotels) -> demonstration (EHL) -> pilot (Booster LOI) -->
+  <section class="slide body hot1">
+    <h2 class="ttl">Traction: Hotel Industry</h2>
+    <svg class="wires" viewBox="0 0 1280 720" width="1280" height="720">
+      <defs><marker id="h8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#E97132"/></marker>
+        <linearGradient id="h8g" gradientUnits="userSpaceOnUse" x1="64" y1="0" x2="1216" y2="0"><stop offset="0" stop-color="#E97132" stop-opacity=".3"/><stop offset="1" stop-color="#E97132"/></linearGradient></defs>
+      <path d="M64 160 L1210 160" stroke="url(#h8g)" stroke-width="3" marker-end="url(#h8)"/>
+      <path d="M445 196 L445 650" stroke="rgba(255,255,255,.18)" stroke-dasharray="5 6"/>
+      <path d="M835 196 L835 650" stroke="rgba(255,255,255,.18)" stroke-dasharray="5 6"/>
+    </svg>
+    <div class="st" style="left:80px">Data collection<i></i></div>
+    <div class="st" style="left:470px">Demonstration<i></i></div>
+    <div class="st hot" style="left:860px">Pilot<i></i></div>
+
+    <div class="big" style="left:80px">5,000+</div>
+    <p class="cap" style="left:80px">video clips collected in Lavande hotels</p>
+    <p class="fact" style="left:80px">48 brands, 18,200 hotels in China</p>
+    <figure class="doc" style="left:190px;transform:rotate(-3deg)"><img src="assets/traction/loi-lavande.jpg" alt=""><b>LOI</b></figure>
+    <div class="lg2" style="left:125px;width:250px"><img src="assets/pipeline/jinjiang.png" alt=""><img src="assets/pipeline/lavande.png" alt=""></div>
+
+    <div class="big" style="left:470px">2 campuses</div>
+    <p class="cap" style="left:470px">EHL Singapore / Hainan as demo sites</p>
+    <p class="fact" style="left:470px">World No. 1 in hospitality and leisure management</p>
+    <div class="lg2" style="left:580px;width:120px"><img src="assets/pipeline/ehl.png" alt=""></div>
+
+    <div class="big" style="left:860px">$350k</div>
+    <p class="cap" style="left:860px">LOI signed with Booster Robotics for a pilot</p>
+    <p class="fact" style="left:860px">Top 10 robot manufacturer in China</p>
+    <figure class="doc" style="left:900px;transform:rotate(-3deg)"><img src="assets/traction/loi-booster.jpg" alt=""><b>LOI</b></figure>
+    <img class="bot" src="assets/traction/booster-t1.png" alt="" style="left:1060px">
+    <div class="lg2" style="left:935px;width:190px"><img src="assets/pipeline/booster.png" alt=""></div>
+  </section>
+
+
+  <!-- Traction 3: pipeline inside one big arrow (early -> detailed -> pilot), partners and support below -->
+  <section class="slide body pipe">
+    <h2 class="ttl">Traction: Commercial Pipeline and Partners</h2>
+    <div class="sub" style="top:104px">Commercial pipeline</div>
+    <svg class="wires" viewBox="0 0 1280 720" width="1280" height="720">
+      <defs><linearGradient id="p9f" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1280" y2="0"><stop offset="0" stop-color="#E97132" stop-opacity=".02"/><stop offset="1" stop-color="#E97132" stop-opacity=".22"/></linearGradient>
+        <linearGradient id="p9s" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1280" y2="0"><stop offset="0" stop-color="#E97132" stop-opacity=".25"/><stop offset="1" stop-color="#E97132"/></linearGradient></defs>
+      <clipPath id="p9c"><path d="M0 186 C420 190 840 234 1280 268 L1280 416 C840 452 420 500 0 506 Z"/></clipPath><path d="M0 186 C420 190 840 234 1280 268 L1280 416 C840 452 420 500 0 506 Z" fill="url(#p9f)"/><path d="M0 186 C420 190 840 234 1280 268 M1280 416 C840 452 420 500 0 506" fill="none" stroke="url(#p9s)" stroke-width="2"/>
+      <path clip-path="url(#p9c)" d="M560 120 L560 560 M950 120 L950 560" stroke="rgba(255,255,255,.45)" stroke-width="1.5" stroke-dasharray="6 6"/>
+      
+    </svg>
+    <img class="lg" src="assets/pipeline/white/t-unitree.png" alt="Unitree" style="left:70px;top:263px;height:28px">
+    <span class="lg xm" style="left:170px;top:333px"><img src="assets/pipeline/white/t-xiaomi-mark.png" alt="" style="height:38px"><img src="assets/pipeline/white/t-xiaomi-text.png" alt="Xiaomi Robotics" style="height:19px"></span>
+    <img class="lg" src="assets/pipeline/white/t-engineai.png" alt="EngineAI" style="left:56px;top:397px;height:40px">
+    <img class="lg" src="assets/pipeline/white/t-xpeng.png" alt="XPeng" style="left:340px;top:277px;height:18px">
+    <img class="lg" src="assets/pipeline/white/t-lumos.png" alt="Lumos" style="left:330px;top:416px;height:24px">
+    <img class="lg" src="assets/pipeline/white/t-galaxea.png" alt="Galaxea AI" style="left:590px;top:271px;height:44px">
+    <img class="lg" src="assets/pipeline/white/agile.svg" alt="Agile Robots" style="left:770px;top:301px;height:22px">
+    <img class="lg" src="assets/pipeline/white/pi.png" alt="Physical Intelligence" style="left:604px;top:351px;height:24px">
+    <img class="lg" src="assets/pipeline/white/nvidia-nr.png" alt="NVIDIA" style="left:770px;top:398px;height:28px">
+    <img class="lg" src="assets/pipeline/white/t-booster.png" alt="Booster Robotics" style="left:982px;top:289px;height:40px">
+    <img class="lg" src="assets/pipeline/white/t-jinjiang.png" alt="Jin Jiang Hotels" style="left:1174px;top:298px;height:58px">
+    <img class="lg" src="assets/pipeline/white/t-ehl.png" alt="EHL" style="left:1068px;top:351px;height:56px">
+    <div class="stg2" style="left:64px;top:150px">In early discussions</div>
+    <div class="stg2" style="left:584px;top:150px">In detailed discussions</div>
+    <div class="stg2" style="left:974px;top:150px">Pilot in progress</div>
+
+    <div class="eco">
+      <div class="grp"><span class="k">Research partners</span><span class="lr"><img src="assets/pipeline/white/eth.png" alt="ETH Zurich" style="height:22px"><img src="assets/pipeline/white/stanford.png" alt="Stanford" style="height:25px"><img src="assets/pipeline/white/nus.png" alt="NUS" style="height:40px"></span></div>
+      <div class="grp"><span class="k">Compute and cloud</span><span class="lr"><img src="assets/pipeline/white/gcloud.png" alt="Google Cloud" style="height:24px"></span></div>
+      <div class="grp"><span class="k">Backed by ($200k grant)</span><span class="lr"><img src="assets/pipeline/white/ngrip.png" alt="National GRIP" style="height:40px"><img src="assets/pipeline/white/nusx.svg" alt="NUSX" style="height:22px"><img src="assets/pipeline/white/b71.png" alt="B71, an NUSX venture platform" style="height:42px"></span></div>
+    </div>
+  </section>
+
+
+
+  <!-- Business model: the small table from the mentor review (HEXLink / HEXWorld x now / at scale) -->
+  <section class="slide body bm">
+    <h2 class="ttl">Business Model</h2>
+    <svg class="wires" viewBox="0 0 1280 720" width="1280" height="720">
+      <defs><linearGradient id="bmg" gradientUnits="userSpaceOnUse" x1="64" y1="0" x2="1216" y2="0"><stop offset="0" stop-color="#E97132" stop-opacity=".2"/><stop offset="1" stop-color="#E97132"/></linearGradient></defs>
+      <path d="M64 332 L1156 332" stroke="url(#bmg)" stroke-width="8" stroke-linecap="round"/>
+      <path d="M1150 320 L1216 332 L1150 344 Z" fill="#E97132"/>
+      <path d="M690 170 L690 510" stroke="#E97132" stroke-width="3"/>
+    </svg>
+    <div class="hd" style="left:304px">Near term</div>
+    <div class="hd hot" style="left:764px">At scale</div>
+
+    <div class="pr" style="top:220px"><svg class="pi lk ic w"><use href="#i-hexlink"/></svg>HEXLink</div>
+    <div class="it" style="left:320px;top:196px"><b>Customized data projects</b><span>e.g. hotels</span></div>
+    <div class="it hot" style="left:780px;top:196px"><b>Data-as-a-service</b><span>Subscription</span></div>
+
+    <div class="pr" style="top:412px"><svg class="pi ic w"><use href="#i-hexworld"/></svg>HEXWorld</div>
+    <div class="it" style="left:320px;top:388px"><b>Co-development</b><span>Social brain + manipulation<br>model or hardware</span></div>
+    <div class="it hot" style="left:780px;top:388px"><b>Model licensing</b><span>To robot makers</span></div>
+
+    <div class="cust"><span>Customers</span>Robot makers building human-facing robots</div>
+  </section>
+
+  <!-- Market size: same format as the 2026-09 deck (nested circles); numbers to be recalculated by the user -->
+  <section class="slide body mkt2">
+    <svg class="wires" viewBox="0 0 1280 720" width="1280" height="720" style="z-index:2"><path d="M364 178 L640 178" stroke="rgba(255,255,255,.6)" stroke-width="1"/><circle cx="364" cy="178" r="4" fill="#fff"/><path d="M364 280 L640 280" stroke="rgba(255,255,255,.6)" stroke-width="1"/><circle cx="364" cy="280" r="4" fill="#fff"/><path d="M364 382 L640 382" stroke="rgba(255,255,255,.6)" stroke-width="1"/><circle cx="364" cy="382" r="4" fill="#fff"/><path d="M364 482 L640 482" stroke="rgba(255,255,255,.6)" stroke-width="1"/><circle cx="364" cy="482" r="4" fill="#fff"/></svg>
+    <h2 class="ttl">From Pilot to a $10.3B Market</h2>
+    <div class="ring r0" style="left:31.0px;top:128px;width:504px;height:504px"></div><div class="num" style="top:158px">$10.3B</div><div class="desc" style="top:152px"><b>TAM</b><span>Global data and model spend for all human-facing robots</span></div><div class="ring r1" style="left:81.0px;top:228px;width:404px;height:404px"></div><div class="num" style="top:260px">$488M</div><div class="desc" style="top:254px"><b>SAM</b><span>Social intelligence layer for robot makers</span></div><div class="ring r2" style="left:133.0px;top:332px;width:300px;height:300px"></div><div class="num" style="top:362px">$78.5M</div><div class="desc" style="top:356px"><b>SOM</b><span>15% market share in Southeast Asia, China and Europe by 2030</span></div><div class="ring r3" style="left:183.0px;top:432px;width:200px;height:200px"></div><div class="num" style="top:512px">$1.3M</div><div class="desc" style="top:456px"><b>LM</b><span>First customers: custom data projects and co-development with robot makers in China</span></div>
+  </section>
+
+  <!-- Competition: categories vs capabilities grouped by data, model and embodiment -->
+  <section class="slide body comp">
+    <h2 class="ttl">Competitive Landscape</h2>
+    <div class="grp" style="left:458px;width:208px">Data</div>
+    <div class="grp" style="left:684px;width:416px">Model</div>
+    <div class="grp" style="left:1118px;width:104px">Embodiment</div>
+    <div class="hd" style="left:336px">Built for physical AI</div>
+    <div class="hd" style="left:458px">Experiential<br>data</div>
+    <div class="hd" style="left:562px">Task<br>data</div>
+    <div class="hd" style="left:684px">Manipulation<br>capability</div>
+    <div class="hd" style="left:788px">Social<br>capability</div>
+    <div class="hd" style="left:892px">Cross-task generalization</div>
+    <div class="hd" style="left:996px">Deployment<br>efficiency</div>
+    <div class="hd" style="left:1118px">Hardware</div>
+    <div class="cat" style="top:232px"><b>Social AI</b><span>Nuance Labs</span></div>
+    <div class="cell" style="left:336px;top:232px"><i class="d0"></i></div>
+    <div class="cell" style="left:458px;top:232px"><i class="d1"></i></div>
+    <div class="cell" style="left:562px;top:232px"><i class="d0"></i></div>
+    <div class="cell" style="left:684px;top:232px"><i class="d0"></i></div>
+    <div class="cell" style="left:788px;top:232px"><i class="d2"></i></div>
+    <div class="cell" style="left:892px;top:232px"><i class="d1"></i></div>
+    <div class="cell" style="left:996px;top:232px"><i class="d2"></i></div>
+    <div class="cell" style="left:1118px;top:232px"><i class="d0"></i></div>
+    <div class="cat" style="top:370px"><b>Frontier AI labs</b><span>OpenAI, Anthropic</span></div>
+    <div class="cell" style="left:336px;top:370px"><i class="d1"></i></div>
+    <div class="cell" style="left:458px;top:370px"><i class="d0"></i></div>
+    <div class="cell" style="left:562px;top:370px"><i class="d0"></i></div>
+    <div class="cell" style="left:684px;top:370px"><i class="d1"></i></div>
+    <div class="cell" style="left:788px;top:370px"><i class="d1"></i></div>
+    <div class="cell" style="left:892px;top:370px"><i class="d1"></i></div>
+    <div class="cell" style="left:996px;top:370px"><i class="d1"></i></div>
+    <div class="cell" style="left:1118px;top:370px"><i class="d0"></i></div>
+    <div class="cat" style="top:432px"><b>Robot foundation models</b><span>Physical Intelligence, Pokebot</span></div>
+    <div class="cell" style="left:336px;top:432px"><i class="d2"></i></div>
+    <div class="cell" style="left:458px;top:432px"><i class="d0"></i></div>
+    <div class="cell" style="left:562px;top:432px"><i class="d2"></i></div>
+    <div class="cell" style="left:684px;top:432px"><i class="d2"></i></div>
+    <div class="cell" style="left:788px;top:432px"><i class="d0"></i></div>
+    <div class="cell" style="left:892px;top:432px"><i class="d2"></i></div>
+    <div class="cell" style="left:996px;top:432px"><i class="d2"></i></div>
+    <div class="cell" style="left:1118px;top:432px"><i class="d1"></i></div>
+    <div class="cat" style="top:494px"><b>Robot makers</b><span>Unitree, Figure AI</span></div>
+    <div class="cell" style="left:336px;top:494px"><i class="d2"></i></div>
+    <div class="cell" style="left:458px;top:494px"><i class="d0"></i></div>
+    <div class="cell" style="left:562px;top:494px"><i class="d1"></i></div>
+    <div class="cell" style="left:684px;top:494px"><i class="d1"></i></div>
+    <div class="cell" style="left:788px;top:494px"><i class="d0"></i></div>
+    <div class="cell" style="left:892px;top:494px"><i class="d1"></i></div>
+    <div class="cell" style="left:996px;top:494px"><i class="d2"></i></div>
+    <div class="cell" style="left:1118px;top:494px"><i class="d2"></i></div>
+    <div class="cat" style="top:294px"><b>Data infrastructure</b><span>Lightwheel, Mecka AI</span></div>
+    <div class="cell" style="left:336px;top:294px"><i class="d2"></i></div>
+    <div class="cell" style="left:458px;top:294px"><i class="d0"></i></div>
+    <div class="cell" style="left:562px;top:294px"><i class="d2"></i></div>
+    <div class="cell" style="left:684px;top:294px"><i class="d0"></i></div>
+    <div class="cell" style="left:788px;top:294px"><i class="d0"></i></div>
+    <div class="cell" style="left:892px;top:294px"><i class="d0"></i></div>
+    <div class="cell" style="left:996px;top:294px"><i class="d0"></i></div>
+    <div class="cell" style="left:1118px;top:294px"><i class="d0"></i></div>
+    <div class="us" style="top:560px"></div>
+    <div class="cat me" style="top:566px"><b><svg class="pi ic w" style="height:20px;width:20px;margin-right:8px"><use href="#i-hexworld"/></svg>Connexis</b><span>HEXWorld + HEXLink</span></div>
+    <div class="cell" style="left:336px;top:566px"><i class="d2 o"></i></div>
+    <div class="cell" style="left:458px;top:566px"><i class="d2 o"></i></div>
+    <div class="cell" style="left:562px;top:566px"><i class="d1 o"></i></div>
+    <div class="cell" style="left:684px;top:566px"><i class="d1 o"></i></div>
+    <div class="cell" style="left:788px;top:566px"><i class="d2 o"></i></div>
+    <div class="cell" style="left:892px;top:566px"><i class="d2 o"></i></div>
+    <div class="cell" style="left:996px;top:566px"><i class="d2 o"></i></div>
+    <div class="cell" style="left:1118px;top:566px"><i class="d0"></i></div>
+    <div class="brk co" style="top:378px;height:170px"><span>Potential collaborators</span></div>
+    <div class="key"><i class="d2"></i>Yes<i class="d1"></i>Partial<i class="d0"></i>No</div>
+  </section>
+
+  <!-- Team and advisors on one page: small round photos in a list (style of the Nuance Labs team slide) -->
+  <section class="slide body tm">
+    <h2 class="ttl">A Rare Team of Frontier Researchers and Builders</h2>
+    <div class="lab" style="top:154px">Team</div>
+    <div class="tr" style="top:132px"><img src="assets/team/qiqing-wang.jpg" alt=""><b>Qiqing Wang</b><span class="r">CEO</span><span class="c">PhD, NUS. Previously CITIC Securities</span></div>
+    <div class="tr" style="top:214px"><img src="assets/team/tianxiang-chen.png" alt=""><b>Tianxiang Chen</b><span class="r">CTO</span><span class="c">PhD, NUS. Frontier AI research, NeurIPS &amp; ICLR</span></div>
+    <div class="tr" style="top:296px"><img src="assets/team/guoyao-yang-centered.png" alt=""><b>Guoyao Yang</b><span class="r">COO</span><span class="c">PhD, NUS. Expertise in socially aware robotics</span></div>
+    <div class="tr" style="top:378px"><img src="assets/team/kaidi-yang.png" alt=""><b>Prof. Kaidi Yang</b><span class="r">Chief Scientist</span><span class="c">Professor, NUS. Previously Tsinghua, ETH Zurich, Stanford</span></div>
+    <div class="lab" style="top:510px">Advisors</div>
+    <div class="tr" style="top:488px"><img src="assets/team/paul-bradley.jpg" alt=""><b>Paul Bradley</b><span class="r">Strategic Advisor</span><span class="c">Founded 7 startups, 2 IPOs</span></div>
+    <div class="tr" style="top:570px"><img src="assets/team/sidharta-andalam.jpg" alt=""><b>Dr. Sidharta Andalam</b><span class="r">Venture Architect</span><span class="c">7+ years in deep-tech commercialization at Bosch, 20+ patents</span></div>
+  </section>
+
+  <!-- Closing -->
+  <section class="slide closing">
+    <svg class="abs logo" overflow="visible" role="img" aria-label="Connexis Robotics" viewBox="215.45 157.10 759.35 200.80" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;">
+<g class="rg rg1"><ellipse cx="302.85" cy="260.95" rx="23.34" ry="104.51" transform="rotate(-41 302.85 260.95)" fill="none" stroke="white" stroke-width="9.2"/></g><g class="rg rg2"><ellipse cx="302.85" cy="260.95" rx="23.34" ry="104.51" transform="rotate(41 302.85 260.95)" fill="none" stroke="white" stroke-width="9.2"/></g><circle class="ripple" cx="302.85" cy="226.49" r="12" fill="none" stroke="#E97132" stroke-width="2.5" opacity="0"/><g class="dot"><rect x="295.85" y="219.49" width="14.0" height="14.0" fill="#E97132" transform="rotate(45 302.85 226.49)"/></g><g class="word"><g>
+            <g transform="matrix(1.610849,0,0,1,-250.561321,13)">
+                <path d="M424.497,247.76C423.504,247.76 422.523,247.7 421.555,247.58C420.586,247.46 419.63,247.26 418.687,246.98C417.743,246.7 416.812,246.3 415.893,245.78C414.975,245.26 414.093,244.62 413.249,243.86C412.404,243.1 411.622,242.18 410.902,241.1C410.182,240.02 409.574,238.82 409.077,237.5C408.58,236.18 408.233,234.74 408.034,233.18C407.835,231.62 407.736,230.08 407.736,228.56L407.736,182.24C407.736,180.72 407.835,179.18 408.034,177.62C408.233,176.06 408.58,174.62 409.077,173.3C409.574,171.98 410.182,170.78 410.902,169.7C411.622,168.62 412.404,167.7 413.249,166.94C414.093,166.18 414.975,165.54 415.893,165.02C416.812,164.5 417.743,164.1 418.687,163.82C419.63,163.54 420.586,163.34 421.555,163.22C422.523,163.1 423.504,163.04 424.497,163.04C427.279,163.04 430.022,163.62 432.729,164.78C435.436,165.94 437.981,167.68 440.365,170L440.365,185.6L434.778,185.6L434.778,175.52C433.189,174.32 431.512,173.42 429.749,172.82C427.986,172.22 426.236,171.92 424.497,171.92C423.703,171.92 422.921,171.96 422.151,172.04C421.381,172.12 420.624,172.3 419.879,172.58C419.134,172.86 418.401,173.24 417.681,173.72C416.961,174.2 416.315,174.86 415.744,175.7C415.173,176.54 414.726,177.52 414.403,178.64C414.081,179.76 413.919,180.96 413.919,182.24L413.919,228.56C413.919,229.84 414.081,231.04 414.403,232.16C414.726,233.28 415.173,234.26 415.744,235.1C416.315,235.94 416.961,236.6 417.681,237.08C418.401,237.56 419.134,237.94 419.879,238.22C420.624,238.5 421.381,238.68 422.151,238.76C422.921,238.84 423.703,238.88 424.497,238.88C426.236,238.88 427.986,238.58 429.749,237.98C431.512,237.38 433.189,236.48 434.778,235.28L434.778,225.2L440.365,225.2L440.365,240.8C437.981,243.12 435.436,244.86 432.729,246.02C430.022,247.18 427.279,247.76 424.497,247.76Z" style="fill:white;fill-rule:nonzero;"/>
+            </g>
+            <g transform="matrix(1.610849,0,0,1,-250.561321,13)">
+                <path d="M469.045,247.76C468.052,247.76 467.071,247.7 466.103,247.58C465.134,247.46 464.178,247.24 463.235,246.92C462.291,246.6 461.36,246.18 460.441,245.66C459.522,245.14 458.641,244.46 457.797,243.62C456.952,242.78 456.183,241.82 455.487,240.74C454.792,239.66 454.208,238.42 453.737,237.02C453.265,235.62 452.93,234.16 452.731,232.64C452.532,231.12 452.433,229.56 452.433,227.96L452.433,203.24C452.433,201.64 452.532,200.08 452.731,198.56C452.93,197.04 453.265,195.58 453.737,194.18C454.208,192.78 454.792,191.54 455.487,190.46C456.183,189.38 456.952,188.42 457.797,187.58C458.641,186.74 459.522,186.06 460.441,185.54C461.36,185.02 462.291,184.6 463.235,184.28C464.178,183.96 465.134,183.74 466.103,183.62C467.071,183.5 468.052,183.44 469.045,183.44C470.039,183.44 471.02,183.5 471.988,183.62C472.956,183.74 473.912,183.96 474.856,184.28C475.8,184.6 476.731,185.02 477.65,185.54C478.568,186.06 479.45,186.74 480.294,187.58C481.138,188.42 481.908,189.38 482.603,190.46C483.299,191.54 483.882,192.78 484.354,194.18C484.826,195.58 485.161,197.04 485.36,198.56C485.558,200.08 485.658,201.64 485.658,203.24L485.658,227.96C485.658,229.56 485.558,231.12 485.36,232.64C485.161,234.16 484.826,235.62 484.354,237.02C483.882,238.42 483.299,239.66 482.603,240.74C481.908,241.82 481.138,242.78 480.294,243.62C479.45,244.46 478.568,245.14 477.65,245.66C476.731,246.18 475.8,246.6 474.856,246.92C473.912,247.24 472.956,247.46 471.988,247.58C471.02,247.7 470.039,247.76 469.045,247.76ZM469.045,238.88C469.84,238.88 470.622,238.84 471.392,238.76C472.162,238.68 472.919,238.48 473.664,238.16C474.409,237.84 475.142,237.4 475.862,236.84C476.582,236.28 477.227,235.56 477.799,234.68C478.37,233.8 478.792,232.78 479.065,231.62C479.338,230.46 479.475,229.24 479.475,227.96L479.475,203.24C479.475,201.96 479.338,200.74 479.065,199.58C478.792,198.42 478.37,197.4 477.799,196.52C477.227,195.64 476.582,194.92 475.862,194.36C475.142,193.8 474.409,193.36 473.664,193.04C472.919,192.72 472.162,192.52 471.392,192.44C470.622,192.36 469.84,192.32 469.045,192.32C468.251,192.32 467.469,192.36 466.699,192.44C465.929,192.52 465.172,192.72 464.427,193.04C463.682,193.36 462.949,193.8 462.229,194.36C461.509,194.92 460.863,195.64 460.292,196.52C459.721,197.4 459.299,198.42 459.026,199.58C458.753,200.74 458.616,201.96 458.616,203.24L458.616,227.96C458.616,229.24 458.753,230.46 459.026,231.62C459.299,232.78 459.721,233.8 460.292,234.68C460.863,235.56 461.509,236.28 462.229,236.84C462.949,237.4 463.682,237.84 464.427,238.16C465.172,238.48 465.929,238.68 466.699,238.76C467.469,238.84 468.251,238.88 469.045,238.88Z" style="fill:white;fill-rule:nonzero;"/>
+            </g>
+            <g transform="matrix(1.610849,0,0,1,-250.561321,13)">
+                <path d="M497.726,246.8L497.726,184.4L503.909,184.4L503.909,193.28C504.455,191.6 505.188,190.08 506.107,188.72C507.025,187.36 508.031,186.28 509.124,185.48C510.216,184.68 511.358,184.14 512.55,183.86C513.742,183.58 514.934,183.44 516.126,183.44C517.318,183.44 518.485,183.58 519.627,183.86C520.77,184.14 521.875,184.64 522.942,185.36C524.01,186.08 525.003,187.04 525.922,188.24C526.841,189.44 527.586,190.86 528.157,192.5C528.728,194.14 529.138,195.88 529.386,197.72C529.635,199.56 529.759,201.4 529.759,203.24L529.759,246.8L523.576,246.8L523.576,203.24C523.576,202.04 523.451,200.86 523.203,199.7C522.955,198.54 522.582,197.52 522.086,196.64C521.589,195.76 520.993,195.04 520.298,194.48C519.603,193.92 518.895,193.46 518.175,193.1C517.455,192.74 516.722,192.52 515.977,192.44C515.232,192.36 514.487,192.32 513.742,192.32C512.997,192.32 512.252,192.36 511.507,192.44C510.763,192.52 510.03,192.74 509.31,193.1C508.59,193.46 507.882,193.92 507.187,194.48C506.491,195.04 505.896,195.76 505.399,196.64C504.902,197.52 504.53,198.54 504.281,199.7C504.033,200.86 503.909,202.04 503.909,203.24L503.909,246.8L497.726,246.8Z" style="fill:white;fill-rule:nonzero;"/>
+            </g>
+            <g transform="matrix(1.610849,0,0,1,-250.561321,13)">
+                <path d="M542.423,246.8L542.423,184.4L548.606,184.4L548.606,193.28C549.152,191.6 549.885,190.08 550.804,188.72C551.722,187.36 552.728,186.28 553.821,185.48C554.913,184.68 556.055,184.14 557.247,183.86C558.439,183.58 559.631,183.44 560.823,183.44C562.015,183.44 563.182,183.58 564.324,183.86C565.467,184.14 566.572,184.64 567.639,185.36C568.707,186.08 569.7,187.04 570.619,188.24C571.538,189.44 572.283,190.86 572.854,192.5C573.425,194.14 573.835,195.88 574.083,197.72C574.331,199.56 574.456,201.4 574.456,203.24L574.456,246.8L568.273,246.8L568.273,203.24C568.273,202.04 568.148,200.86 567.9,199.7C567.652,198.54 567.279,197.52 566.783,196.64C566.286,195.76 565.69,195.04 564.995,194.48C564.3,193.92 563.592,193.46 562.872,193.1C562.152,192.74 561.419,192.52 560.674,192.44C559.929,192.36 559.184,192.32 558.439,192.32C557.694,192.32 556.949,192.36 556.204,192.44C555.459,192.52 554.727,192.74 554.007,193.1C553.287,193.46 552.579,193.92 551.884,194.48C551.188,195.04 550.592,195.76 550.096,196.64C549.599,197.52 549.227,198.54 548.978,199.7C548.73,200.86 548.606,202.04 548.606,203.24L548.606,246.8L542.423,246.8Z" style="fill:white;fill-rule:nonzero;"/>
+            </g>
+            <g transform="matrix(1.610849,0,0,1,-250.561321,13)">
+                <path d="M603.062,247.76C602.068,247.76 601.088,247.7 600.119,247.58C599.151,247.46 598.195,247.24 597.251,246.92C596.307,246.6 595.376,246.18 594.458,245.66C593.539,245.14 592.67,244.46 591.85,243.62C591.031,242.78 590.273,241.8 589.578,240.68C588.883,239.56 588.299,238.32 587.827,236.96C587.356,235.6 587.02,234.16 586.822,232.64C586.623,231.12 586.524,229.56 586.524,227.96L586.524,203.24C586.524,201.64 586.623,200.08 586.822,198.56C587.02,197.04 587.356,195.58 587.827,194.18C588.299,192.78 588.883,191.54 589.578,190.46C590.273,189.38 591.043,188.42 591.887,187.58C592.732,186.74 593.613,186.06 594.532,185.54C595.451,185.02 596.382,184.6 597.326,184.28C598.269,183.96 599.225,183.74 600.194,183.62C601.162,183.5 602.143,183.44 603.136,183.44C604.129,183.44 605.11,183.5 606.079,183.62C607.047,183.74 608.003,183.96 608.947,184.28C609.89,184.6 610.822,185.02 611.74,185.54C612.659,186.06 613.541,186.74 614.385,187.58C615.229,188.42 615.999,189.38 616.694,190.46C617.39,191.54 617.973,192.78 618.445,194.18C618.917,195.58 619.252,197.04 619.451,198.56C619.649,200.08 619.749,201.64 619.749,203.24L619.749,219.92L592.632,219.92L592.632,227.96C592.632,229.24 592.769,230.48 593.042,231.68C593.315,232.88 593.737,233.92 594.309,234.8C594.88,235.68 595.513,236.4 596.208,236.96C596.903,237.52 597.636,237.94 598.406,238.22C599.176,238.5 599.945,238.7 600.715,238.82C601.485,238.94 602.267,239 603.062,239C603.807,239 604.552,238.96 605.297,238.88C606.041,238.8 606.774,238.64 607.494,238.4C608.214,238.16 608.91,237.82 609.58,237.38C610.25,236.94 610.884,236.36 611.48,235.64C612.076,234.92 612.56,234.04 612.932,233C613.305,231.96 613.491,230.84 613.491,229.64L613.491,229.4L619.6,229.4L619.6,230C619.6,231.92 619.351,233.82 618.855,235.7C618.358,237.58 617.675,239.24 616.806,240.68C615.937,242.12 614.956,243.3 613.863,244.22C612.771,245.14 611.629,245.86 610.437,246.38C609.245,246.9 608.028,247.26 606.786,247.46C605.545,247.66 604.303,247.76 603.062,247.76ZM592.632,211.28L613.64,211.28L613.64,203.24C613.64,201.96 613.503,200.72 613.23,199.52C612.957,198.32 612.535,197.28 611.964,196.4C611.393,195.52 610.747,194.8 610.027,194.24C609.307,193.68 608.562,193.26 607.792,192.98C607.022,192.7 606.253,192.5 605.483,192.38C604.713,192.26 603.931,192.2 603.136,192.2C602.342,192.2 601.559,192.26 600.79,192.38C600.02,192.5 599.25,192.7 598.48,192.98C597.71,193.26 596.966,193.68 596.245,194.24C595.525,194.8 594.88,195.52 594.309,196.4C593.737,197.28 593.315,198.32 593.042,199.52C592.769,200.72 592.632,201.96 592.632,203.24L592.632,211.28Z" style="fill:white;fill-rule:nonzero;"/>
+            </g>
+            <g transform="matrix(1.610849,0,0,1,-250.561321,13)">
+                <path d="M630.923,246.8L644.406,215.6L630.923,184.4L638.447,184.4L647.833,207.32L657.219,184.4L664.743,184.4L651.26,215.6L664.743,246.8L657.219,246.8L647.833,223.88L638.447,246.8L630.923,246.8Z" style="fill:white;fill-rule:nonzero;"/>
+            </g>
+            <path d="M840.88,259.8L840.88,250.92L861.04,250.92L861.04,206.16L842.8,206.16L842.8,197.4L870.88,197.4L870.88,250.92L889.12,250.92L889.12,259.8L840.88,259.8Z" style="fill:white;fill-rule:nonzero;"/>
+            <g transform="matrix(1.610849,0,0,1,-250.561321,13)">
+                <path d="M737.152,247.76C735.961,247.76 734.769,247.68 733.577,247.52C732.385,247.36 731.218,247.04 730.075,246.56C728.933,246.08 727.828,245.42 726.76,244.58C725.693,243.74 724.724,242.66 723.855,241.34C722.986,240.02 722.303,238.46 721.807,236.66C721.31,234.86 721.062,233 721.062,231.08L721.062,230.6L727.17,230.6L727.17,230.72C727.17,231.84 727.369,232.88 727.766,233.84C728.163,234.8 728.648,235.58 729.219,236.18C729.79,236.78 730.398,237.26 731.044,237.62C731.689,237.98 732.348,238.26 733.018,238.46C733.688,238.66 734.371,238.8 735.067,238.88C735.762,238.96 736.457,239 737.152,239C737.848,239 738.543,238.96 739.238,238.88C739.934,238.8 740.629,238.66 741.324,238.46C742.019,238.26 742.69,237.96 743.336,237.56C743.981,237.16 744.59,236.64 745.161,236C745.732,235.36 746.204,234.54 746.576,233.54C746.949,232.54 747.135,231.48 747.135,230.36C747.135,229.08 746.899,227.88 746.427,226.76C745.955,225.64 745.384,224.74 744.714,224.06C744.043,223.38 743.311,222.84 742.516,222.44C741.721,222.04 740.939,221.68 740.169,221.36C739.4,221.04 738.618,220.72 737.823,220.4C737.028,220.08 736.246,219.74 735.476,219.38C734.707,219.02 733.937,218.66 733.167,218.3C732.397,217.94 731.627,217.52 730.858,217.04C730.088,216.56 729.343,216.04 728.623,215.48C727.903,214.92 727.207,214.28 726.537,213.56C725.866,212.84 725.233,212.02 724.637,211.1C724.041,210.18 723.532,209.18 723.11,208.1C722.688,207.02 722.365,205.84 722.142,204.56C721.918,203.28 721.807,202 721.807,200.72C721.807,198.88 722.03,197.06 722.477,195.26C722.924,193.46 723.545,191.86 724.339,190.46C725.134,189.06 726.053,187.9 727.096,186.98C728.139,186.06 729.219,185.34 730.336,184.82C731.454,184.3 732.596,183.94 733.763,183.74C734.93,183.54 736.11,183.44 737.301,183.44C738.444,183.44 739.598,183.52 740.765,183.68C741.933,183.84 743.075,184.18 744.192,184.7C745.31,185.22 746.39,185.9 747.433,186.74C748.476,187.58 749.394,188.66 750.189,189.98C750.984,191.3 751.617,192.84 752.089,194.6C752.56,196.36 752.796,198.16 752.796,200L752.796,200.6L746.688,200.6L746.688,200.36C746.688,199.32 746.514,198.34 746.166,197.42C745.819,196.5 745.384,195.72 744.863,195.08C744.341,194.44 743.77,193.94 743.149,193.58C742.528,193.22 741.895,192.94 741.25,192.74C740.604,192.54 739.946,192.4 739.276,192.32C738.605,192.24 737.947,192.2 737.301,192.2C736.656,192.2 735.998,192.24 735.327,192.32C734.657,192.4 733.986,192.54 733.316,192.74C732.646,192.94 732,193.24 731.379,193.64C730.758,194.04 730.187,194.58 729.666,195.26C729.144,195.94 728.722,196.76 728.399,197.72C728.076,198.68 727.915,199.68 727.915,200.72C727.915,202.08 728.151,203.32 728.623,204.44C729.095,205.56 729.666,206.46 730.336,207.14C731.007,207.82 731.727,208.36 732.497,208.76C733.266,209.16 734.048,209.52 734.843,209.84C735.638,210.16 736.42,210.48 737.19,210.8C737.959,211.12 738.742,211.44 739.536,211.76C740.331,212.08 741.113,212.44 741.883,212.84C742.653,213.24 743.41,213.68 744.155,214.16C744.9,214.64 745.645,215.16 746.39,215.72C747.135,216.28 747.842,216.92 748.513,217.64C749.183,218.36 749.804,219.16 750.375,220.04C750.946,220.92 751.455,221.92 751.902,223.04C752.349,224.16 752.685,225.34 752.908,226.58C753.132,227.82 753.243,229.12 753.243,230.48C753.243,232.4 753.007,234.26 752.536,236.06C752.064,237.86 751.406,239.46 750.562,240.86C749.717,242.26 748.749,243.4 747.656,244.28C746.564,245.16 745.446,245.86 744.304,246.38C743.162,246.9 741.982,247.26 740.765,247.46C739.549,247.66 738.344,247.76 737.152,247.76Z" style="fill:white;fill-rule:nonzero;"/>
+            </g>
+        </g>
+        <g transform="matrix(0.707107,0.707107,-0.707107,0.707107,358.297331,-526.692568)">
+            <rect class="idot" x="851" y="133" width="14" height="14" style="fill:rgb(233,113,50);"/>
+        </g><g transform="translate(5.44 -36.3)"><g transform="matrix(1.610849,0,0,1,-253.561321,165)">
+            <path d="M406.221,217.2L406.221,162L418.19,162C419.084,162 419.97,162.133 420.847,162.4C421.725,162.667 422.561,163.133 423.355,163.8C424.15,164.467 424.853,165.333 425.466,166.4C426.078,167.467 426.575,168.653 426.956,169.96C427.337,171.267 427.601,172.64 427.75,174.08C427.899,175.52 427.974,176.96 427.974,178.4C427.974,179.893 427.891,181.387 427.726,182.88C427.56,184.373 427.27,185.8 426.856,187.16C426.443,188.52 425.888,189.733 425.193,190.8C424.497,191.867 423.736,192.72 422.908,193.36C423.703,193.947 424.415,194.747 425.044,195.76C425.673,196.773 426.178,197.92 426.558,199.2C426.939,200.48 427.204,201.813 427.353,203.2C427.502,204.587 427.577,206 427.577,207.44L427.577,212.16C427.577,213.013 427.626,213.88 427.726,214.76C427.825,215.64 428.04,216.453 428.371,217.2L424.249,217.2C423.951,216.453 423.744,215.64 423.628,214.76C423.512,213.88 423.455,213.013 423.455,212.16L423.455,207.44C423.455,206.48 423.43,205.533 423.38,204.6C423.33,203.667 423.231,202.733 423.082,201.8C422.933,200.867 422.726,199.973 422.461,199.12C422.196,198.267 421.857,197.493 421.443,196.8C421.029,196.107 420.549,195.6 420.003,195.28C419.457,194.96 418.886,194.8 418.29,194.8L410.343,194.8L410.343,217.2L406.221,217.2ZM418.19,188.88C419.018,188.88 419.821,188.627 420.599,188.12C421.377,187.613 422.023,186.853 422.536,185.84C423.049,184.827 423.397,183.667 423.579,182.36C423.761,181.053 423.852,179.733 423.852,178.4C423.852,177.067 423.761,175.747 423.579,174.44C423.397,173.133 423.049,171.96 422.536,170.92C422.023,169.88 421.377,169.107 420.599,168.6C419.821,168.093 419.018,167.84 418.19,167.84L410.343,167.84L410.343,188.88L418.19,188.88Z" style="fill:white;fill-rule:nonzero;"/>
+            <path d="M446.697,217.84C446.035,217.84 445.381,217.8 444.735,217.72C444.09,217.64 443.452,217.493 442.823,217.28C442.194,217.067 441.573,216.787 440.961,216.44C440.348,216.093 439.761,215.64 439.198,215.08C438.635,214.52 438.122,213.88 437.658,213.16C437.195,212.44 436.806,211.613 436.491,210.68C436.177,209.747 435.953,208.773 435.821,207.76C435.688,206.747 435.622,205.707 435.622,204.64L435.622,188.16C435.622,187.093 435.688,186.053 435.821,185.04C435.953,184.027 436.177,183.053 436.491,182.12C436.806,181.187 437.195,180.36 437.658,179.64C438.122,178.92 438.635,178.28 439.198,177.72C439.761,177.16 440.348,176.707 440.961,176.36C441.573,176.013 442.194,175.733 442.823,175.52C443.452,175.307 444.09,175.16 444.735,175.08C445.381,175 446.035,174.96 446.697,174.96C447.359,174.96 448.013,175 448.659,175.08C449.304,175.16 449.942,175.307 450.571,175.52C451.2,175.733 451.821,176.013 452.433,176.36C453.046,176.707 453.633,177.16 454.196,177.72C454.759,178.28 455.272,178.92 455.736,179.64C456.199,180.36 456.588,181.187 456.903,182.12C457.217,183.053 457.441,184.027 457.573,185.04C457.706,186.053 457.772,187.093 457.772,188.16L457.772,204.64C457.772,205.707 457.706,206.747 457.573,207.76C457.441,208.773 457.217,209.747 456.903,210.68C456.588,211.613 456.199,212.44 455.736,213.16C455.272,213.88 454.759,214.52 454.196,215.08C453.633,215.64 453.046,216.093 452.433,216.44C451.821,216.787 451.2,217.067 450.571,217.28C449.942,217.493 449.304,217.64 448.659,217.72C448.013,217.8 447.359,217.84 446.697,217.84ZM446.697,211.92C447.227,211.92 447.748,211.893 448.261,211.84C448.775,211.787 449.279,211.653 449.776,211.44C450.273,211.227 450.761,210.933 451.241,210.56C451.721,210.187 452.152,209.707 452.532,209.12C452.913,208.533 453.195,207.853 453.377,207.08C453.559,206.307 453.65,205.493 453.65,204.64L453.65,188.16C453.65,187.307 453.559,186.493 453.377,185.72C453.195,184.947 452.913,184.267 452.532,183.68C452.152,183.093 451.721,182.613 451.241,182.24C450.761,181.867 450.273,181.573 449.776,181.36C449.279,181.147 448.775,181.013 448.261,180.96C447.748,180.907 447.227,180.88 446.697,180.88C446.167,180.88 445.646,180.907 445.133,180.96C444.619,181.013 444.114,181.147 443.618,181.36C443.121,181.573 442.633,181.867 442.153,182.24C441.673,182.613 441.242,183.093 440.861,183.68C440.481,184.267 440.199,184.947 440.017,185.72C439.835,186.493 439.744,187.307 439.744,188.16L439.744,204.64C439.744,205.493 439.835,206.307 440.017,207.08C440.199,207.853 440.481,208.533 440.861,209.12C441.242,209.707 441.673,210.187 442.153,210.56C442.633,210.933 443.121,211.227 443.618,211.44C444.114,211.653 444.619,211.787 445.133,211.84C445.646,211.893 446.167,211.92 446.697,211.92Z" style="fill:white;fill-rule:nonzero;"/>
+            <path d="M478.283,217.84C477.488,217.84 476.677,217.747 475.849,217.56C475.022,217.373 474.235,217.013 473.49,216.48C472.745,215.947 472.058,215.227 471.429,214.32C470.8,213.413 470.304,212.373 469.939,211.2L469.939,217.2L465.817,217.2L465.817,158L469.939,158L469.939,181.6C470.304,180.427 470.8,179.387 471.429,178.48C472.058,177.573 472.745,176.853 473.49,176.32C474.235,175.787 475.022,175.427 475.849,175.24C476.677,175.053 477.488,174.96 478.283,174.96C479.077,174.96 479.864,175.053 480.642,175.24C481.42,175.427 482.173,175.76 482.901,176.24C483.63,176.72 484.3,177.36 484.913,178.16C485.525,178.96 486.038,179.893 486.452,180.96C486.866,182.027 487.156,183.173 487.321,184.4C487.487,185.627 487.57,186.88 487.57,188.16L487.57,204.64C487.57,205.92 487.487,207.173 487.321,208.4C487.156,209.627 486.866,210.773 486.452,211.84C486.038,212.907 485.525,213.84 484.913,214.64C484.3,215.44 483.63,216.08 482.901,216.56C482.173,217.04 481.42,217.373 480.642,217.56C479.864,217.747 479.077,217.84 478.283,217.84ZM476.694,211.92C477.19,211.92 477.695,211.893 478.208,211.84C478.721,211.787 479.226,211.653 479.723,211.44C480.22,211.227 480.7,210.933 481.163,210.56C481.627,210.187 482.032,209.707 482.38,209.12C482.728,208.533 482.992,207.84 483.175,207.04C483.357,206.24 483.448,205.44 483.448,204.64L483.448,188.16C483.448,187.36 483.357,186.56 483.175,185.76C482.992,184.96 482.728,184.267 482.38,183.68C482.032,183.093 481.627,182.613 481.163,182.24C480.7,181.867 480.22,181.573 479.723,181.36C479.226,181.147 478.721,181.013 478.208,180.96C477.695,180.907 477.19,180.88 476.694,180.88C476.197,180.88 475.692,180.907 475.179,180.96C474.666,181.013 474.161,181.147 473.664,181.36C473.167,181.573 472.687,181.867 472.224,182.24C471.76,182.613 471.355,183.093 471.007,183.68C470.659,184.267 470.395,184.96 470.212,185.76C470.03,186.56 469.939,187.36 469.939,188.16L469.939,204.64C469.939,205.44 470.03,206.24 470.212,207.04C470.395,207.84 470.659,208.533 471.007,209.12C471.355,209.707 471.76,210.187 472.224,210.56C472.687,210.933 473.167,211.227 473.664,211.44C474.161,211.653 474.666,211.787 475.179,211.84C475.692,211.893 476.197,211.92 476.694,211.92Z" style="fill:white;fill-rule:nonzero;"/>
+            <path d="M506.293,217.84C505.631,217.84 504.977,217.8 504.331,217.72C503.686,217.64 503.048,217.493 502.419,217.28C501.79,217.067 501.169,216.787 500.557,216.44C499.944,216.093 499.357,215.64 498.794,215.08C498.231,214.52 497.718,213.88 497.254,213.16C496.791,212.44 496.402,211.613 496.087,210.68C495.772,209.747 495.549,208.773 495.417,207.76C495.284,206.747 495.218,205.707 495.218,204.64L495.218,188.16C495.218,187.093 495.284,186.053 495.417,185.04C495.549,184.027 495.772,183.053 496.087,182.12C496.402,181.187 496.791,180.36 497.254,179.64C497.718,178.92 498.231,178.28 498.794,177.72C499.357,177.16 499.944,176.707 500.557,176.36C501.169,176.013 501.79,175.733 502.419,175.52C503.048,175.307 503.686,175.16 504.331,175.08C504.977,175 505.631,174.96 506.293,174.96C506.955,174.96 507.609,175 508.255,175.08C508.9,175.16 509.537,175.307 510.167,175.52C510.796,175.733 511.416,176.013 512.029,176.36C512.641,176.707 513.229,177.16 513.792,177.72C514.355,178.28 514.868,178.92 515.332,179.64C515.795,180.36 516.184,181.187 516.499,182.12C516.813,183.053 517.037,184.027 517.169,185.04C517.302,186.053 517.368,187.093 517.368,188.16L517.368,204.64C517.368,205.707 517.302,206.747 517.169,207.76C517.037,208.773 516.813,209.747 516.499,210.68C516.184,211.613 515.795,212.44 515.332,213.16C514.868,213.88 514.355,214.52 513.792,215.08C513.229,215.64 512.641,216.093 512.029,216.44C511.416,216.787 510.796,217.067 510.167,217.28C509.537,217.493 508.9,217.64 508.255,217.72C507.609,217.8 506.955,217.84 506.293,217.84ZM506.293,211.92C506.823,211.92 507.344,211.893 507.857,211.84C508.37,211.787 508.875,211.653 509.372,211.44C509.869,211.227 510.357,210.933 510.837,210.56C511.317,210.187 511.748,209.707 512.128,209.12C512.509,208.533 512.79,207.853 512.973,207.08C513.155,206.307 513.246,205.493 513.246,204.64L513.246,188.16C513.246,187.307 513.155,186.493 512.973,185.72C512.79,184.947 512.509,184.267 512.128,183.68C511.748,183.093 511.317,182.613 510.837,182.24C510.357,181.867 509.869,181.573 509.372,181.36C508.875,181.147 508.37,181.013 507.857,180.96C507.344,180.907 506.823,180.88 506.293,180.88C505.763,180.88 505.242,180.907 504.728,180.96C504.215,181.013 503.71,181.147 503.214,181.36C502.717,181.573 502.229,181.867 501.749,182.24C501.269,182.613 500.838,183.093 500.457,183.68C500.077,184.267 499.795,184.947 499.613,185.72C499.431,186.493 499.34,187.307 499.34,188.16L499.34,204.64C499.34,205.493 499.431,206.307 499.613,207.08C499.795,207.853 500.077,208.533 500.457,209.12C500.838,209.707 501.269,210.187 501.749,210.56C502.229,210.933 502.717,211.227 503.214,211.44C503.71,211.653 504.215,211.787 504.728,211.84C505.242,211.893 505.763,211.92 506.293,211.92Z" style="fill:white;fill-rule:nonzero;"/>
+            <path d="M546.768,217.2L541.206,217.2C540.478,217.2 539.741,217.093 538.996,216.88C538.251,216.667 537.539,216.293 536.861,215.76C536.182,215.227 535.569,214.533 535.023,213.68C534.477,212.827 534.038,211.853 533.707,210.76C533.376,209.667 533.152,208.52 533.036,207.32C532.921,206.12 532.863,204.907 532.863,203.68L532.863,181.52L525.413,181.52L525.413,175.6L532.863,175.6L532.863,163.12L536.935,163.12L536.935,175.6L546.768,175.6L546.768,181.44L536.935,181.44L536.935,203.68C536.935,204.693 537.01,205.68 537.159,206.64C537.308,207.6 537.581,208.453 537.978,209.2C538.375,209.947 538.864,210.48 539.443,210.8C540.022,211.12 540.61,211.28 541.206,211.28L546.768,211.28L546.768,217.2Z" style="fill:white;fill-rule:nonzero;"/>
+            <path d="M555.906,217.2L555.906,211.28L564.25,211.28L564.25,181.44L556.701,181.44L556.701,175.6L568.322,175.6L568.322,211.28L575.871,211.28L575.871,217.2L555.906,217.2ZM563.257,167.76L563.257,158.32L569.117,158.32L569.117,167.76L563.257,167.76Z" style="fill:white;fill-rule:nonzero;"/>
+            <path d="M595.786,217.84C595.124,217.84 594.47,217.8 593.824,217.72C593.179,217.64 592.533,217.493 591.887,217.28C591.242,217.067 590.613,216.787 590,216.44C589.388,216.093 588.8,215.653 588.237,215.12C587.674,214.587 587.161,213.947 586.698,213.2C586.234,212.453 585.837,211.627 585.506,210.72C585.175,209.813 584.943,208.84 584.81,207.8C584.678,206.76 584.612,205.707 584.612,204.64L584.612,188.16C584.612,187.093 584.678,186.04 584.81,185C584.943,183.96 585.175,182.987 585.506,182.08C585.837,181.173 586.234,180.347 586.698,179.6C587.161,178.853 587.674,178.213 588.237,177.68C588.8,177.147 589.388,176.707 590,176.36C590.613,176.013 591.242,175.733 591.887,175.52C592.533,175.307 593.179,175.16 593.824,175.08C594.47,175 595.124,174.96 595.786,174.96C597.64,174.96 599.469,175.347 601.274,176.12C603.078,176.893 604.775,178.053 606.364,179.6L606.364,190L602.64,190L602.64,183.28C601.58,182.48 600.471,181.88 599.312,181.48C598.153,181.08 596.978,180.88 595.786,180.88C595.256,180.88 594.735,180.907 594.222,180.96C593.708,181.013 593.195,181.147 592.682,181.36C592.169,181.573 591.672,181.853 591.192,182.2C590.712,182.547 590.282,183.013 589.901,183.6C589.52,184.187 589.23,184.88 589.032,185.68C588.833,186.48 588.734,187.307 588.734,188.16L588.734,204.64C588.734,205.493 588.833,206.32 589.032,207.12C589.23,207.92 589.52,208.613 589.901,209.2C590.282,209.787 590.712,210.253 591.192,210.6C591.672,210.947 592.169,211.227 592.682,211.44C593.195,211.653 593.708,211.787 594.222,211.84C594.735,211.893 595.256,211.92 595.786,211.92C596.978,211.92 598.153,211.72 599.312,211.32C600.471,210.92 601.58,210.32 602.64,209.52L602.64,202.8L606.364,202.8L606.364,213.2C604.775,214.747 603.078,215.907 601.274,216.68C599.469,217.453 597.64,217.84 595.786,217.84Z" style="fill:white;fill-rule:nonzero;"/>
+            <path d="M625.435,217.84C624.64,217.84 623.846,217.787 623.051,217.68C622.257,217.573 621.478,217.36 620.717,217.04C619.955,216.72 619.219,216.28 618.507,215.72C617.795,215.16 617.149,214.44 616.57,213.56C615.991,212.68 615.535,211.64 615.204,210.44C614.873,209.24 614.708,208 614.708,206.72L614.708,206.4L618.78,206.4L618.78,206.48C618.78,207.227 618.913,207.92 619.177,208.56C619.442,209.2 619.765,209.72 620.146,210.12C620.527,210.52 620.932,210.84 621.363,211.08C621.793,211.32 622.232,211.507 622.679,211.64C623.126,211.773 623.581,211.867 624.044,211.92C624.508,211.973 624.971,212 625.435,212C625.898,212 626.362,211.973 626.826,211.92C627.289,211.867 627.753,211.773 628.216,211.64C628.68,211.507 629.127,211.307 629.557,211.04C629.987,210.773 630.393,210.427 630.774,210C631.155,209.573 631.469,209.027 631.717,208.36C631.966,207.693 632.09,206.987 632.09,206.24C632.09,205.387 631.933,204.587 631.618,203.84C631.304,203.093 630.923,202.493 630.476,202.04C630.029,201.587 629.54,201.227 629.011,200.96C628.481,200.693 627.96,200.453 627.446,200.24C626.933,200.027 626.412,199.813 625.882,199.6C625.352,199.387 624.831,199.16 624.318,198.92C623.804,198.68 623.291,198.44 622.778,198.2C622.265,197.96 621.752,197.68 621.238,197.36C620.725,197.04 620.229,196.693 619.749,196.32C619.268,195.947 618.805,195.52 618.358,195.04C617.911,194.56 617.489,194.013 617.092,193.4C616.694,192.787 616.355,192.12 616.073,191.4C615.792,190.68 615.577,189.893 615.428,189.04C615.279,188.187 615.204,187.333 615.204,186.48C615.204,185.253 615.353,184.04 615.651,182.84C615.949,181.64 616.363,180.573 616.893,179.64C617.423,178.707 618.035,177.933 618.73,177.32C619.426,176.707 620.146,176.227 620.891,175.88C621.636,175.533 622.397,175.293 623.175,175.16C623.953,175.027 624.74,174.96 625.534,174.96C626.296,174.96 627.066,175.013 627.844,175.12C628.622,175.227 629.383,175.453 630.128,175.8C630.873,176.147 631.593,176.6 632.288,177.16C632.984,177.72 633.596,178.44 634.126,179.32C634.656,180.2 635.078,181.227 635.392,182.4C635.707,183.573 635.864,184.773 635.864,186L635.864,186.4L631.792,186.4L631.792,186.24C631.792,185.547 631.676,184.893 631.444,184.28C631.212,183.667 630.923,183.147 630.575,182.72C630.227,182.293 629.847,181.96 629.433,181.72C629.019,181.48 628.597,181.293 628.166,181.16C627.736,181.027 627.297,180.933 626.85,180.88C626.403,180.827 625.965,180.8 625.534,180.8C625.104,180.8 624.665,180.827 624.218,180.88C623.771,180.933 623.324,181.027 622.877,181.16C622.43,181.293 622,181.493 621.586,181.76C621.172,182.027 620.791,182.387 620.444,182.84C620.096,183.293 619.815,183.84 619.6,184.48C619.384,185.12 619.277,185.787 619.277,186.48C619.277,187.387 619.434,188.213 619.749,188.96C620.063,189.707 620.444,190.307 620.891,190.76C621.338,191.213 621.818,191.573 622.331,191.84C622.844,192.107 623.366,192.347 623.895,192.56C624.425,192.773 624.947,192.987 625.46,193.2C625.973,193.413 626.494,193.627 627.024,193.84C627.554,194.053 628.075,194.293 628.589,194.56C629.102,194.827 629.607,195.12 630.103,195.44C630.6,195.76 631.097,196.107 631.593,196.48C632.09,196.853 632.562,197.28 633.009,197.76C633.456,198.24 633.869,198.773 634.25,199.36C634.631,199.947 634.97,200.613 635.268,201.36C635.566,202.107 635.79,202.893 635.939,203.72C636.088,204.547 636.162,205.413 636.162,206.32C636.162,207.6 636.005,208.84 635.69,210.04C635.376,211.24 634.937,212.307 634.374,213.24C633.811,214.173 633.166,214.933 632.437,215.52C631.709,216.107 630.964,216.573 630.203,216.92C629.441,217.267 628.655,217.507 627.844,217.64C627.032,217.773 626.23,217.84 625.435,217.84Z" style="fill:white;fill-rule:nonzero;"/>
+        </g></g>
+</g><g class="hopx"><g class="hopy"><g class="hopd"><rect x="295.85" y="219.49" width="14.0" height="14.0" fill="#E97132" transform="rotate(45 302.85 226.49)"/></g></g></g></svg>
+    <h1 class="abs">Leading the Robot Transformation<br>with <span class="hl">Social Intelligence</span></h1>
+    <p class="abs sub">Join our journey</p>
+    <div class="crop shake"><img src="assets/handshake.png" alt=""></div>
+  </section>
+
+</div></div>
+<div class="rot">Rotate your phone for a larger view. Swipe to change slides</div>
+<div class="nav"><button id="prev">‹</button><span id="count"></span><button id="next">›</button></div>
+<script>
+  if (/[?&]shot\b/.test(location.search)) document.documentElement.classList.add('shot');
+  const slides = [...document.querySelectorAll('.slide')];
+  // body pages: wordmark bottom left, page number bottom right (cover and closing stay clean)
+  slides.forEach((s, k) => {
+    if (s.classList.contains('cover') || s.classList.contains('closing')) return;
+    s.insertAdjacentHTML('beforeend', `<img class="pg-logo" src="assets/connexis-wordmark-white.svg" alt="Connexis"><div class="pg-num">${k + 1}</div>`);
+  });
+  let i = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.slice(1)) || 1) - 1));
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => {
+      s.classList.toggle('active', k === i);
+      // restart the closing logo animation every time the slide is shown
+      if (s.classList.contains('closing')) { s.classList.remove('play'); if (k === i) { void s.offsetWidth; s.classList.add('play'); } }
+      s.querySelectorAll('video').forEach(v => { if (k === i) { v.play().catch(() => {}); } else { v.pause(); } });
+    });
+    document.getElementById('count').textContent = `${i + 1} / ${slides.length}`;
+    history.replaceState(null, '', '#' + (i + 1));
+  }
+  function fit() {
+    const s = Math.min(innerWidth / 1280, innerHeight / 720);
+    document.getElementById('deck').style.transform = `scale(${s})`;
+  }
+  addEventListener('resize', fit);
+  addEventListener('keydown', e => {
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) show(i + 1);
+    if (['ArrowLeft', 'PageUp'].includes(e.key)) show(i - 1);
+  });
+  let tx = null, ty = null;
+  addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive: true});
+  addEventListener('touchend', e => {
+    if (tx === null) return;
+    const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) show(i + (dx < 0 ? 1 : -1));
+    tx = null;
+  }, {passive: true});
+  document.getElementById('prev').onclick = () => show(i - 1);
+  document.getElementById('next').onclick = () => show(i + 1);
+  fit(); show(i);
+</script>
+</body>
+</html>
